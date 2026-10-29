@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>King Me</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="King Me">
+<link rel="apple-touch-icon" href="../icons/checkers-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/checkers-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&display=swap">
@@ -148,6 +156,8 @@ button { touch-action: manipulation; }
 .arrows polygon { stroke: none; }
 .arrows .best line { stroke: rgba(241, 187, 42, .9); }
 .arrows .best polygon { fill: rgba(241, 187, 42, .9); }
+.arrows .threat line { stroke: rgba(226, 70, 60, .85); stroke-dasharray: .22 .14; }
+.arrows .threat polygon { fill: rgba(226, 70, 60, .85); }
 
 /* ---------- status, controls, moves ---------- */
 .status { margin: 0; text-align: center; font-family: var(--font-display); font-weight: 400; font-size: 18px; min-height: 24px; text-wrap: balance; }
@@ -172,6 +182,41 @@ button { touch-action: manipulation; }
 .toast { position: fixed; z-index: 40; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
   max-width: calc(100% - 32px); box-sizing: border-box; padding: 9px 16px; border-radius: 12px; background: var(--paper); color: var(--ink); font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .7); }
 
+/* ---------- Game Night kit: reactions, sound button, home link ---------- */
+.react-bar { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.react-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); font-size: 20px; line-height: 1; cursor: pointer; padding: 0; display: grid; place-items: center; transition: transform .1s; }
+.react-btn:active { transform: scale(.9); }
+.react-pop { position: fixed; z-index: 50; bottom: 30%; display: flex; flex-direction: column; align-items: center; gap: 2px; pointer-events: none; animation: react-rise 2.2s ease-out forwards; }
+.react-emoji { font-size: 56px; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5)); }
+.react-name { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--paper); color: var(--ink); }
+.react-name:empty { display: none; }
+@keyframes react-rise {
+  0% { transform: translateY(30px) scale(.4); opacity: 0; }
+  15% { transform: translateY(0) scale(1.15); opacity: 1; }
+  25% { transform: translateY(-10px) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateY(-180px) scale(.95); opacity: 0; }
+}
+.home-link { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--paper); text-decoration: none; }
+.home-link svg { width: 18px; height: 18px; }
+.review-list { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.review-item { display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--paper); cursor: pointer; font-size: 14px; }
+.review-item:hover { border-color: var(--paper); }
+.review-item .tag { flex: none; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+.tag.blunder { background: var(--red); color: var(--paper); }
+.tag.mistake { background: #e8833a; color: #2a1400; }
+.tag.inaccuracy { background: var(--yellow); color: #2a1d00; }
+.review-item .txt { min-width: 0; }
+.review-item .txt b { font-weight: 700; }
+.review-sum { display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.review-sum b { color: var(--paper); }
+.review-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: 14px; }
+.review-banner p { margin: 0; min-width: 0; flex: 1 1 200px; }
+#review-note { margin: 0; font-size: 13px; color: var(--muted); }
+#review-tabs .seg { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; }
+#review-tabs .seg button { flex: 1; border: 0; background: none; color: var(--muted); padding: 6px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+#review-tabs .seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+
 @media (max-width: 480px) {
   .brand { font-size: 17px; }
   .status { font-size: 16px; }
@@ -191,6 +236,8 @@ button { touch-action: manipulation; }
     <div class="score" id="score" aria-label="Score"></div>
     <div class="top-tools">
       <span class="pill" id="pill"><i></i><span id="pill-text"></span></span>
+      <button class="icon-btn" id="mute" type="button"></button>
+      <a class="home-link" id="home-link" href="../play/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></a>
 
     </div>
   </header>
@@ -207,6 +254,7 @@ button { touch-action: manipulation; }
   </form>
 
   <div class="banner" id="banner" hidden><p id="banner-text"></p><div class="banner-actions" id="banner-actions"></div></div>
+  <div class="review-banner" id="preview-bar" hidden><p id="preview-text"></p><div class="row"><button class="btn small" id="preview-back" type="button">Back to review</button><button class="btn small primary" id="preview-done" type="button">Back to game</button></div></div>
 
   <div class="bar" id="op-bar">
     <div class="who"><span class="chip" id="op-chip"></span><strong id="op-name">Computer</strong></div>
@@ -234,6 +282,7 @@ button { touch-action: manipulation; }
     <button class="btn" id="btn-new" type="button" hidden>New game</button>
   </div>
   <div class="moves" id="moves" aria-label="Moves"></div>
+  <div class="react-bar" id="react-bar" hidden></div>
 </div>
 
 <div class="overlay" id="over" hidden>
@@ -243,6 +292,18 @@ button { touch-action: manipulation; }
     <p id="over-score"></p>
     <p id="over-note" hidden></p>
     <div class="row" id="over-actions"></div>
+  </div>
+</div>
+
+<div class="overlay" id="review" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <p class="eyebrow">Game review</p>
+    <h2 id="review-title">Your moves</h2>
+    <div id="review-tabs"></div>
+    <div class="review-sum" id="review-sum"></div>
+    <ul class="review-list" id="review-list"></ul>
+    <p class="note" id="review-note"></p>
+    <div class="row"><button class="btn" id="review-close" type="button">Close</button></div>
   </div>
 </div>
 
@@ -256,6 +317,561 @@ button { touch-action: manipulation; }
     isWebRTCSupported:${this.isWebRTCSupported()}
     isBrowserSupported:${this.isBrowserSupported()}
     isUnifiedPlanSupported:${this.isUnifiedPlanSupported()}`}constructor(){this.isIOS="undefined"!=typeof navigator&&["iPad","iPhone","iPod"].includes(navigator.platform),this.supportedBrowsers=["firefox","chrome","safari"],this.minFirefoxVersion=59,this.minChromeVersion=72,this.minSafariVersion=605}},ew=e=>!e||/^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$/.test(e),eE=()=>Math.random().toString(36).slice(2),eD={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:["turn:eu-0.turn.peerjs.com:3478","turn:us-0.turn.peerjs.com:3478"],username:"peerjs",credential:"peerjsp"}],sdpSemantics:"unified-plan"},ex=new class extends n{noop(){}blobToArrayBuffer(e,t){let n=new FileReader;return n.onload=function(e){e.target&&t(e.target.result)},n.readAsArrayBuffer(e),n}binaryStringToArrayBuffer(e){let t=new Uint8Array(e.length);for(let n=0;n<e.length;n++)t[n]=255&e.charCodeAt(n);return t.buffer}isSecure(){return"https:"===location.protocol}constructor(...e){super(...e),this.CLOUD_HOST="0.peerjs.com",this.CLOUD_PORT=443,this.chunkedBrowsers={Chrome:1,chrome:1},this.defaultConfig=eD,this.browser=eP.getBrowser(),this.browserVersion=eP.getVersion(),this.pack=o,this.unpack=i,this.supports=function(){let e;let t={browser:eP.isBrowserSupported(),webRTC:eP.isWebRTCSupported(),audioVideo:!1,data:!1,binaryBlob:!1,reliable:!1};if(!t.webRTC)return t;try{let n;e=new RTCPeerConnection(eD),t.audioVideo=!0;try{n=e.createDataChannel("_PEERJSTEST",{ordered:!0}),t.data=!0,t.reliable=!!n.ordered;try{n.binaryType="blob",t.binaryBlob=!eP.isIOS}catch(e){}}catch(e){}finally{n&&n.close()}}catch(e){}finally{e&&e.close()}return t}(),this.validateId=ew,this.randomToken=eE}};(_=P||(P={}))[_.Disabled=0]="Disabled",_[_.Errors=1]="Errors",_[_.Warnings=2]="Warnings",_[_.All=3]="All";var eI=new class{get logLevel(){return this._logLevel}set logLevel(e){this._logLevel=e}log(...e){this._logLevel>=3&&this._print(3,...e)}warn(...e){this._logLevel>=2&&this._print(2,...e)}error(...e){this._logLevel>=1&&this._print(1,...e)}setLogFunction(e){this._print=e}_print(e,...t){let n=["PeerJS: ",...t];for(let e in n)n[e]instanceof Error&&(n[e]="("+n[e].name+") "+n[e].message);e>=3?console.log(...n):e>=2?console.warn("WARNING",...n):e>=1&&console.error("ERROR",...n)}constructor(){this._logLevel=0}},eM={},eO=Object.prototype.hasOwnProperty,ej="~";function eL(){}function eA(e,t,n){this.fn=e,this.context=t,this.once=n||!1}function eB(e,t,n,r,i){if("function"!=typeof n)throw TypeError("The listener must be a function");var o=new eA(n,r||e,i),s=ej?ej+t:t;return e._events[s]?e._events[s].fn?e._events[s]=[e._events[s],o]:e._events[s].push(o):(e._events[s]=o,e._eventsCount++),e}function eF(e,t){0==--e._eventsCount?e._events=new eL:delete e._events[t]}function eU(){this._events=new eL,this._eventsCount=0}Object.create&&(eL.prototype=Object.create(null),new eL().__proto__||(ej=!1)),eU.prototype.eventNames=function(){var e,t,n=[];if(0===this._eventsCount)return n;for(t in e=this._events)eO.call(e,t)&&n.push(ej?t.slice(1):t);return Object.getOwnPropertySymbols?n.concat(Object.getOwnPropertySymbols(e)):n},eU.prototype.listeners=function(e){var t=ej?ej+e:e,n=this._events[t];if(!n)return[];if(n.fn)return[n.fn];for(var r=0,i=n.length,o=Array(i);r<i;r++)o[r]=n[r].fn;return o},eU.prototype.listenerCount=function(e){var t=ej?ej+e:e,n=this._events[t];return n?n.fn?1:n.length:0},eU.prototype.emit=function(e,t,n,r,i,o){var s=ej?ej+e:e;if(!this._events[s])return!1;var a,c,l=this._events[s],p=arguments.length;if(l.fn){switch(l.once&&this.removeListener(e,l.fn,void 0,!0),p){case 1:return l.fn.call(l.context),!0;case 2:return l.fn.call(l.context,t),!0;case 3:return l.fn.call(l.context,t,n),!0;case 4:return l.fn.call(l.context,t,n,r),!0;case 5:return l.fn.call(l.context,t,n,r,i),!0;case 6:return l.fn.call(l.context,t,n,r,i,o),!0}for(c=1,a=Array(p-1);c<p;c++)a[c-1]=arguments[c];l.fn.apply(l.context,a)}else{var d,h=l.length;for(c=0;c<h;c++)switch(l[c].once&&this.removeListener(e,l[c].fn,void 0,!0),p){case 1:l[c].fn.call(l[c].context);break;case 2:l[c].fn.call(l[c].context,t);break;case 3:l[c].fn.call(l[c].context,t,n);break;case 4:l[c].fn.call(l[c].context,t,n,r);break;default:if(!a)for(d=1,a=Array(p-1);d<p;d++)a[d-1]=arguments[d];l[c].fn.apply(l[c].context,a)}}return!0},eU.prototype.on=function(e,t,n){return eB(this,e,t,n,!1)},eU.prototype.once=function(e,t,n){return eB(this,e,t,n,!0)},eU.prototype.removeListener=function(e,t,n,r){var i=ej?ej+e:e;if(!this._events[i])return this;if(!t)return eF(this,i),this;var o=this._events[i];if(o.fn)o.fn!==t||r&&!o.once||n&&o.context!==n||eF(this,i);else{for(var s=0,a=[],c=o.length;s<c;s++)(o[s].fn!==t||r&&!o[s].once||n&&o[s].context!==n)&&a.push(o[s]);a.length?this._events[i]=1===a.length?a[0]:a:eF(this,i)}return this},eU.prototype.removeAllListeners=function(e){var t;return e?(t=ej?ej+e:e,this._events[t]&&eF(this,t)):(this._events=new eL,this._eventsCount=0),this},eU.prototype.off=eU.prototype.removeListener,eU.prototype.addListener=eU.prototype.on,eU.prefixed=ej,eU.EventEmitter=eU,eM=eU,(C=w||(w={})).Data="data",C.Media="media",(b=E||(E={})).BrowserIncompatible="browser-incompatible",b.Disconnected="disconnected",b.InvalidID="invalid-id",b.InvalidKey="invalid-key",b.Network="network",b.PeerUnavailable="peer-unavailable",b.SslUnavailable="ssl-unavailable",b.ServerError="server-error",b.SocketError="socket-error",b.SocketClosed="socket-closed",b.UnavailableID="unavailable-id",b.WebRTC="webrtc",(v=D||(D={})).NegotiationFailed="negotiation-failed",v.ConnectionClosed="connection-closed",(k=x||(x={})).NotOpenYet="not-open-yet",k.MessageToBig="message-too-big",(T=I||(I={})).Binary="binary",T.BinaryUTF8="binary-utf8",T.JSON="json",T.None="raw",(S=M||(M={})).Message="message",S.Disconnected="disconnected",S.Error="error",S.Close="close",(R=O||(O={})).Heartbeat="HEARTBEAT",R.Candidate="CANDIDATE",R.Offer="OFFER",R.Answer="ANSWER",R.Open="OPEN",R.Error="ERROR",R.IdTaken="ID-TAKEN",R.InvalidKey="INVALID-KEY",R.Leave="LEAVE",R.Expire="EXPIRE";var ez={};ez=JSON.parse('{"name":"peerjs","version":"1.5.4","keywords":["peerjs","webrtc","p2p","rtc"],"description":"PeerJS client","homepage":"https://peerjs.com","bugs":{"url":"https://github.com/peers/peerjs/issues"},"repository":{"type":"git","url":"https://github.com/peers/peerjs"},"license":"MIT","contributors":["Michelle Bu <michelle@michellebu.com>","afrokick <devbyru@gmail.com>","ericz <really.ez@gmail.com>","Jairo <kidandcat@gmail.com>","Jonas Gloning <34194370+jonasgloning@users.noreply.github.com>","Jairo Caro-Accino Viciana <jairo@galax.be>","Carlos Caballero <carlos.caballero.gonzalez@gmail.com>","hc <hheennrryy@gmail.com>","Muhammad Asif <capripio@gmail.com>","PrashoonB <prashoonbhattacharjee@gmail.com>","Harsh Bardhan Mishra <47351025+HarshCasper@users.noreply.github.com>","akotynski <aleksanderkotbury@gmail.com>","lmb <i@lmb.io>","Jairooo <jairocaro@msn.com>","Moritz Stückler <moritz.stueckler@gmail.com>","Simon <crydotsnakegithub@gmail.com>","Denis Lukov <denismassters@gmail.com>","Philipp Hancke <fippo@andyet.net>","Hans Oksendahl <hansoksendahl@gmail.com>","Jess <jessachandler@gmail.com>","khankuan <khankuan@gmail.com>","DUODVK <kurmanov.work@gmail.com>","XiZhao <kwang1imsa@gmail.com>","Matthias Lohr <matthias@lohr.me>","=frank tree <=frnktrb@googlemail.com>","Andre Eckardt <aeckardt@outlook.com>","Chris Cowan <agentme49@gmail.com>","Alex Chuev <alex@chuev.com>","alxnull <alxnull@e.mail.de>","Yemel Jardi <angel.jardi@gmail.com>","Ben Parnell <benjaminparnell.94@gmail.com>","Benny Lichtner <bennlich@gmail.com>","fresheneesz <bitetrudpublic@gmail.com>","bob.barstead@exaptive.com <bob.barstead@exaptive.com>","chandika <chandika@gmail.com>","emersion <contact@emersion.fr>","Christopher Van <cvan@users.noreply.github.com>","eddieherm <edhermoso@gmail.com>","Eduardo Pinho <enet4mikeenet@gmail.com>","Evandro Zanatta <ezanatta@tray.net.br>","Gardner Bickford <gardner@users.noreply.github.com>","Gian Luca <gianluca.cecchi@cynny.com>","PatrickJS <github@gdi2290.com>","jonnyf <github@jonathanfoss.co.uk>","Hizkia Felix <hizkifw@gmail.com>","Hristo Oskov <hristo.oskov@gmail.com>","Isaac Madwed <i.madwed@gmail.com>","Ilya Konanykhin <ilya.konanykhin@gmail.com>","jasonbarry <jasbarry@me.com>","Jonathan Burke <jonathan.burke.1311@googlemail.com>","Josh Hamit <josh.hamit@gmail.com>","Jordan Austin <jrax86@gmail.com>","Joel Wetzell <jwetzell@yahoo.com>","xizhao <kevin.wang@cloudera.com>","Alberto Torres <kungfoobar@gmail.com>","Jonathan Mayol <mayoljonathan@gmail.com>","Jefferson Felix <me@jsfelix.dev>","Rolf Erik Lekang <me@rolflekang.com>","Kevin Mai-Husan Chia <mhchia@users.noreply.github.com>","Pepijn de Vos <pepijndevos@gmail.com>","JooYoung <qkdlql@naver.com>","Tobias Speicher <rootcommander@gmail.com>","Steve Blaurock <sblaurock@gmail.com>","Kyrylo Shegeda <shegeda@ualberta.ca>","Diwank Singh Tomer <singh@diwank.name>","Sören Balko <Soeren.Balko@gmail.com>","Arpit Solanki <solankiarpit1997@gmail.com>","Yuki Ito <yuki@gnnk.net>","Artur Zayats <zag2art@gmail.com>"],"funding":{"type":"opencollective","url":"https://opencollective.com/peer"},"collective":{"type":"opencollective","url":"https://opencollective.com/peer"},"files":["dist/*"],"sideEffects":["lib/global.ts","lib/supports.ts"],"main":"dist/bundler.cjs","module":"dist/bundler.mjs","browser-minified":"dist/peerjs.min.js","browser-unminified":"dist/peerjs.js","browser-minified-msgpack":"dist/serializer.msgpack.mjs","types":"dist/types.d.ts","engines":{"node":">= 14"},"targets":{"types":{"source":"lib/exports.ts"},"main":{"source":"lib/exports.ts","sourceMap":{"inlineSources":true}},"module":{"source":"lib/exports.ts","includeNodeModules":["eventemitter3"],"sourceMap":{"inlineSources":true}},"browser-minified":{"context":"browser","outputFormat":"global","optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-unminified":{"context":"browser","outputFormat":"global","optimize":false,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 80, safari >= 15"},"source":"lib/global.ts"},"browser-minified-msgpack":{"context":"browser","outputFormat":"esmodule","isLibrary":true,"optimize":true,"engines":{"browsers":"chrome >= 83, edge >= 83, firefox >= 102, safari >= 15"},"source":"lib/dataconnection/StreamConnection/MsgPack.ts"}},"scripts":{"contributors":"git-authors-cli --print=false && prettier --write package.json && git add package.json package-lock.json && git commit -m \\"chore(contributors): update and sort contributors list\\"","check":"tsc --noEmit && tsc -p e2e/tsconfig.json --noEmit","watch":"parcel watch","build":"rm -rf dist && parcel build","prepublishOnly":"npm run build","test":"jest","test:watch":"jest --watch","coverage":"jest --coverage --collectCoverageFrom=\\"./lib/**\\"","format":"prettier --write .","format:check":"prettier --check .","semantic-release":"semantic-release","e2e":"wdio run e2e/wdio.local.conf.ts","e2e:bstack":"wdio run e2e/wdio.bstack.conf.ts"},"devDependencies":{"@parcel/config-default":"^2.9.3","@parcel/packager-ts":"^2.9.3","@parcel/transformer-typescript-tsc":"^2.9.3","@parcel/transformer-typescript-types":"^2.9.3","@semantic-release/changelog":"^6.0.1","@semantic-release/git":"^10.0.1","@swc/core":"^1.3.27","@swc/jest":"^0.2.24","@types/jasmine":"^4.3.4","@wdio/browserstack-service":"^8.11.2","@wdio/cli":"^8.11.2","@wdio/globals":"^8.11.2","@wdio/jasmine-framework":"^8.11.2","@wdio/local-runner":"^8.11.2","@wdio/spec-reporter":"^8.11.2","@wdio/types":"^8.10.4","http-server":"^14.1.1","jest":"^29.3.1","jest-environment-jsdom":"^29.3.1","mock-socket":"^9.0.0","parcel":"^2.9.3","prettier":"^3.0.0","semantic-release":"^21.0.0","ts-node":"^10.9.1","typescript":"^5.0.0","wdio-geckodriver-service":"^5.0.1"},"dependencies":{"@msgpack/msgpack":"^2.8.0","eventemitter3":"^4.0.7","peerjs-js-binarypack":"^2.1.0","webrtc-adapter":"^9.0.0"},"alias":{"process":false,"buffer":false}}');class eN extends eM.EventEmitter{start(e,t){this._id=e;let n=`${this._baseUrl}&id=${e}&token=${t}`;!this._socket&&this._disconnected&&(this._socket=new WebSocket(n+"&version="+ez.version),this._disconnected=!1,this._socket.onmessage=e=>{let t;try{t=JSON.parse(e.data),eI.log("Server message received:",t)}catch(t){eI.log("Invalid server message",e.data);return}this.emit(M.Message,t)},this._socket.onclose=e=>{this._disconnected||(eI.log("Socket closed.",e),this._cleanup(),this._disconnected=!0,this.emit(M.Disconnected))},this._socket.onopen=()=>{this._disconnected||(this._sendQueuedMessages(),eI.log("Socket open"),this._scheduleHeartbeat())})}_scheduleHeartbeat(){this._wsPingTimer=setTimeout(()=>{this._sendHeartbeat()},this.pingInterval)}_sendHeartbeat(){if(!this._wsOpen()){eI.log("Cannot send heartbeat, because socket closed");return}let e=JSON.stringify({type:O.Heartbeat});this._socket.send(e),this._scheduleHeartbeat()}_wsOpen(){return!!this._socket&&1===this._socket.readyState}_sendQueuedMessages(){let e=[...this._messagesQueue];for(let t of(this._messagesQueue=[],e))this.send(t)}send(e){if(this._disconnected)return;if(!this._id){this._messagesQueue.push(e);return}if(!e.type){this.emit(M.Error,"Invalid message");return}if(!this._wsOpen())return;let t=JSON.stringify(e);this._socket.send(t)}close(){this._disconnected||(this._cleanup(),this._disconnected=!0)}_cleanup(){this._socket&&(this._socket.onopen=this._socket.onmessage=this._socket.onclose=null,this._socket.close(),this._socket=void 0),clearTimeout(this._wsPingTimer)}constructor(e,t,n,r,i,o=5e3){super(),this.pingInterval=o,this._disconnected=!0,this._messagesQueue=[],this._baseUrl=(e?"wss://":"ws://")+t+":"+n+r+"peerjs?key="+i}}class e${startConnection(e){let t=this._startPeerConnection();if(this.connection.peerConnection=t,this.connection.type===w.Media&&e._stream&&this._addTracksToConnection(e._stream,t),e.originator){let n=this.connection,r={ordered:!!e.reliable},i=t.createDataChannel(n.label,r);n._initializeDataChannel(i),this._makeOffer()}else this.handleSDP("OFFER",e.sdp)}_startPeerConnection(){eI.log("Creating RTCPeerConnection.");let e=new RTCPeerConnection(this.connection.provider.options.config);return this._setupListeners(e),e}_setupListeners(e){let t=this.connection.peer,n=this.connection.connectionId,r=this.connection.type,i=this.connection.provider;eI.log("Listening for ICE candidates."),e.onicecandidate=e=>{e.candidate&&e.candidate.candidate&&(eI.log(`Received ICE candidates for ${t}:`,e.candidate),i.socket.send({type:O.Candidate,payload:{candidate:e.candidate,type:r,connectionId:n},dst:t}))},e.oniceconnectionstatechange=()=>{switch(e.iceConnectionState){case"failed":eI.log("iceConnectionState is failed, closing connections to "+t),this.connection.emitError(D.NegotiationFailed,"Negotiation of connection to "+t+" failed."),this.connection.close();break;case"closed":eI.log("iceConnectionState is closed, closing connections to "+t),this.connection.emitError(D.ConnectionClosed,"Connection to "+t+" closed."),this.connection.close();break;case"disconnected":eI.log("iceConnectionState changed to disconnected on the connection with "+t);break;case"completed":e.onicecandidate=()=>{}}this.connection.emit("iceStateChanged",e.iceConnectionState)},eI.log("Listening for data channel"),e.ondatachannel=e=>{eI.log("Received data channel");let r=e.channel;i.getConnection(t,n)._initializeDataChannel(r)},eI.log("Listening for remote stream"),e.ontrack=e=>{eI.log("Received remote stream");let r=e.streams[0],o=i.getConnection(t,n);o.type===w.Media&&this._addStreamToMediaConnection(r,o)}}cleanup(){eI.log("Cleaning up PeerConnection to "+this.connection.peer);let e=this.connection.peerConnection;if(!e)return;this.connection.peerConnection=null,e.onicecandidate=e.oniceconnectionstatechange=e.ondatachannel=e.ontrack=()=>{};let t="closed"!==e.signalingState,n=!1,r=this.connection.dataChannel;r&&(n=!!r.readyState&&"closed"!==r.readyState),(t||n)&&e.close()}async _makeOffer(){let e=this.connection.peerConnection,t=this.connection.provider;try{let n=await e.createOffer(this.connection.options.constraints);eI.log("Created offer."),this.connection.options.sdpTransform&&"function"==typeof this.connection.options.sdpTransform&&(n.sdp=this.connection.options.sdpTransform(n.sdp)||n.sdp);try{await e.setLocalDescription(n),eI.log("Set localDescription:",n,`for:${this.connection.peer}`);let r={sdp:n,type:this.connection.type,connectionId:this.connection.connectionId,metadata:this.connection.metadata};if(this.connection.type===w.Data){let e=this.connection;r={...r,label:e.label,reliable:e.reliable,serialization:e.serialization}}t.socket.send({type:O.Offer,payload:r,dst:this.connection.peer})}catch(e){"OperationError: Failed to set local offer sdp: Called in wrong state: kHaveRemoteOffer"!=e&&(t.emitError(E.WebRTC,e),eI.log("Failed to setLocalDescription, ",e))}}catch(e){t.emitError(E.WebRTC,e),eI.log("Failed to createOffer, ",e)}}async _makeAnswer(){let e=this.connection.peerConnection,t=this.connection.provider;try{let n=await e.createAnswer();eI.log("Created answer."),this.connection.options.sdpTransform&&"function"==typeof this.connection.options.sdpTransform&&(n.sdp=this.connection.options.sdpTransform(n.sdp)||n.sdp);try{await e.setLocalDescription(n),eI.log("Set localDescription:",n,`for:${this.connection.peer}`),t.socket.send({type:O.Answer,payload:{sdp:n,type:this.connection.type,connectionId:this.connection.connectionId},dst:this.connection.peer})}catch(e){t.emitError(E.WebRTC,e),eI.log("Failed to setLocalDescription, ",e)}}catch(e){t.emitError(E.WebRTC,e),eI.log("Failed to create answer, ",e)}}async handleSDP(e,t){t=new RTCSessionDescription(t);let n=this.connection.peerConnection,r=this.connection.provider;eI.log("Setting remote description",t);try{await n.setRemoteDescription(t),eI.log(`Set remoteDescription:${e} for:${this.connection.peer}`),"OFFER"===e&&await this._makeAnswer()}catch(e){r.emitError(E.WebRTC,e),eI.log("Failed to setRemoteDescription, ",e)}}async handleCandidate(e){eI.log("handleCandidate:",e);try{await this.connection.peerConnection.addIceCandidate(e),eI.log(`Added ICE candidate for:${this.connection.peer}`)}catch(e){this.connection.provider.emitError(E.WebRTC,e),eI.log("Failed to handleCandidate, ",e)}}_addTracksToConnection(e,t){if(eI.log(`add tracks from stream ${e.id} to peer connection`),!t.addTrack)return eI.error("Your browser does't support RTCPeerConnection#addTrack. Ignored.");e.getTracks().forEach(n=>{t.addTrack(n,e)})}_addStreamToMediaConnection(e,t){eI.log(`add stream ${e.id} to media connection ${t.connectionId}`),t.addStream(e)}constructor(e){this.connection=e}}class eJ extends eM.EventEmitter{emitError(e,t){eI.error("Error:",t),this.emit("error",new eV(`${e}`,t))}}class eV extends Error{constructor(e,t){"string"==typeof t?super(t):(super(),Object.assign(this,t)),this.type=e}}class eG extends eJ{get open(){return this._open}constructor(e,t,n){super(),this.peer=e,this.provider=t,this.options=n,this._open=!1,this.metadata=n.metadata}}class eW extends eG{get type(){return w.Media}get localStream(){return this._localStream}get remoteStream(){return this._remoteStream}_initializeDataChannel(e){this.dataChannel=e,this.dataChannel.onopen=()=>{eI.log(`DC#${this.connectionId} dc connection success`),this.emit("willCloseOnRemote")},this.dataChannel.onclose=()=>{eI.log(`DC#${this.connectionId} dc closed for:`,this.peer),this.close()}}addStream(e){eI.log("Receiving stream",e),this._remoteStream=e,super.emit("stream",e)}handleMessage(e){let t=e.type,n=e.payload;switch(e.type){case O.Answer:this._negotiator.handleSDP(t,n.sdp),this._open=!0;break;case O.Candidate:this._negotiator.handleCandidate(n.candidate);break;default:eI.warn(`Unrecognized message type:${t} from peer:${this.peer}`)}}answer(e,t={}){if(this._localStream){eI.warn("Local stream already exists on this MediaConnection. Are you answering a call twice?");return}for(let n of(this._localStream=e,t&&t.sdpTransform&&(this.options.sdpTransform=t.sdpTransform),this._negotiator.startConnection({...this.options._payload,_stream:e}),this.provider._getMessages(this.connectionId)))this.handleMessage(n);this._open=!0}close(){this._negotiator&&(this._negotiator.cleanup(),this._negotiator=null),this._localStream=null,this._remoteStream=null,this.provider&&(this.provider._removeConnection(this),this.provider=null),this.options&&this.options._stream&&(this.options._stream=null),this.open&&(this._open=!1,super.emit("close"))}constructor(e,t,n){super(e,t,n),this._localStream=this.options._stream,this.connectionId=this.options.connectionId||eW.ID_PREFIX+ex.randomToken(),this._negotiator=new e$(this),this._localStream&&this._negotiator.startConnection({_stream:this._localStream,originator:!0})}}eW.ID_PREFIX="mc_";class eH{_buildRequest(e){let t=this._options.secure?"https":"http",{host:n,port:r,path:i,key:o}=this._options,s=new URL(`${t}://${n}:${r}${i}${o}/${e}`);return s.searchParams.set("ts",`${Date.now()}${Math.random()}`),s.searchParams.set("version",ez.version),fetch(s.href,{referrerPolicy:this._options.referrerPolicy})}async retrieveId(){try{let e=await this._buildRequest("id");if(200!==e.status)throw Error(`Error. Status:${e.status}`);return e.text()}catch(t){eI.error("Error retrieving ID",t);let e="";throw"/"===this._options.path&&this._options.host!==ex.CLOUD_HOST&&(e=" If you passed in a `path` to your self-hosted PeerServer, you'll also need to pass in that same path when creating a new Peer."),Error("Could not get an ID from the server."+e)}}async listAllPeers(){try{let e=await this._buildRequest("peers");if(200!==e.status){if(401===e.status){let e="";throw e=this._options.host===ex.CLOUD_HOST?"It looks like you're using the cloud server. You can email team@peerjs.com to enable peer listing for your API key.":"You need to enable `allow_discovery` on your self-hosted PeerServer to use this feature.",Error("It doesn't look like you have permission to list peers IDs. "+e)}throw Error(`Error. Status:${e.status}`)}return e.json()}catch(e){throw eI.error("Error retrieving list peers",e),Error("Could not get list peers from the server."+e)}}constructor(e){this._options=e}}class eY extends eG{get type(){return w.Data}_initializeDataChannel(e){this.dataChannel=e,this.dataChannel.onopen=()=>{eI.log(`DC#${this.connectionId} dc connection success`),this._open=!0,this.emit("open")},this.dataChannel.onmessage=e=>{eI.log(`DC#${this.connectionId} dc onmessage:`,e.data)},this.dataChannel.onclose=()=>{eI.log(`DC#${this.connectionId} dc closed for:`,this.peer),this.close()}}close(e){if(e?.flush){this.send({__peerData:{type:"close"}});return}this._negotiator&&(this._negotiator.cleanup(),this._negotiator=null),this.provider&&(this.provider._removeConnection(this),this.provider=null),this.dataChannel&&(this.dataChannel.onopen=null,this.dataChannel.onmessage=null,this.dataChannel.onclose=null,this.dataChannel=null),this.open&&(this._open=!1,super.emit("close"))}send(e,t=!1){if(!this.open){this.emitError(x.NotOpenYet,"Connection is not open. You should listen for the `open` event before sending messages.");return}return this._send(e,t)}async handleMessage(e){let t=e.payload;switch(e.type){case O.Answer:await this._negotiator.handleSDP(e.type,t.sdp);break;case O.Candidate:await this._negotiator.handleCandidate(t.candidate);break;default:eI.warn("Unrecognized message type:",e.type,"from peer:",this.peer)}}constructor(e,t,n){super(e,t,n),this.connectionId=this.options.connectionId||eY.ID_PREFIX+eE(),this.label=this.options.label||this.connectionId,this.reliable=!!this.options.reliable,this._negotiator=new e$(this),this._negotiator.startConnection(this.options._payload||{originator:!0,reliable:this.reliable})}}eY.ID_PREFIX="dc_",eY.MAX_BUFFERED_AMOUNT=8388608;class eK extends eY{get bufferSize(){return this._bufferSize}_initializeDataChannel(e){super._initializeDataChannel(e),this.dataChannel.binaryType="arraybuffer",this.dataChannel.addEventListener("message",e=>this._handleDataMessage(e))}_bufferedSend(e){(this._buffering||!this._trySend(e))&&(this._buffer.push(e),this._bufferSize=this._buffer.length)}_trySend(e){if(!this.open)return!1;if(this.dataChannel.bufferedAmount>eY.MAX_BUFFERED_AMOUNT)return this._buffering=!0,setTimeout(()=>{this._buffering=!1,this._tryBuffer()},50),!1;try{this.dataChannel.send(e)}catch(e){return eI.error(`DC#:${this.connectionId} Error when sending:`,e),this._buffering=!0,this.close(),!1}return!0}_tryBuffer(){if(!this.open||0===this._buffer.length)return;let e=this._buffer[0];this._trySend(e)&&(this._buffer.shift(),this._bufferSize=this._buffer.length,this._tryBuffer())}close(e){if(e?.flush){this.send({__peerData:{type:"close"}});return}this._buffer=[],this._bufferSize=0,super.close()}constructor(...e){super(...e),this._buffer=[],this._bufferSize=0,this._buffering=!1}}class eX extends eK{close(e){super.close(e),this._chunkedData={}}_handleDataMessage({data:e}){let t=i(e),n=t.__peerData;if(n){if("close"===n.type){this.close();return}this._handleChunk(t);return}this.emit("data",t)}_handleChunk(e){let t=e.__peerData,n=this._chunkedData[t]||{data:[],count:0,total:e.total};if(n.data[e.n]=new Uint8Array(e.data),n.count++,this._chunkedData[t]=n,n.total===n.count){delete this._chunkedData[t];let e=function(e){let t=0;for(let n of e)t+=n.byteLength;let n=new Uint8Array(t),r=0;for(let t of e)n.set(t,r),r+=t.byteLength;return n}(n.data);this._handleDataMessage({data:e})}}_send(e,t){let n=o(e);if(n instanceof Promise)return this._send_blob(n);if(!t&&n.byteLength>this.chunker.chunkedMTU){this._sendChunks(n);return}this._bufferedSend(n)}async _send_blob(e){let t=await e;if(t.byteLength>this.chunker.chunkedMTU){this._sendChunks(t);return}this._bufferedSend(t)}_sendChunks(e){let t=this.chunker.chunk(e);for(let e of(eI.log(`DC#${this.connectionId} Try to send ${t.length} chunks...`),t))this.send(e,!0)}constructor(e,t,r){super(e,t,r),this.chunker=new n,this.serialization=I.Binary,this._chunkedData={}}}class eq extends eK{_handleDataMessage({data:e}){super.emit("data",e)}_send(e,t){this._bufferedSend(e)}constructor(...e){super(...e),this.serialization=I.None}}class eQ extends eK{_handleDataMessage({data:e}){let t=this.parse(this.decoder.decode(e)),n=t.__peerData;if(n&&"close"===n.type){this.close();return}this.emit("data",t)}_send(e,t){let n=this.encoder.encode(this.stringify(e));if(n.byteLength>=ex.chunkedMTU){this.emitError(x.MessageToBig,"Message too big for JSON channel");return}this._bufferedSend(n)}constructor(...e){super(...e),this.serialization=I.JSON,this.encoder=new TextEncoder,this.decoder=new TextDecoder,this.stringify=JSON.stringify,this.parse=JSON.parse}}class eZ extends eJ{get id(){return this._id}get options(){return this._options}get open(){return this._open}get socket(){return this._socket}get connections(){let e=Object.create(null);for(let[t,n]of this._connections)e[t]=n;return e}get destroyed(){return this._destroyed}get disconnected(){return this._disconnected}_createServerConnection(){let e=new eN(this._options.secure,this._options.host,this._options.port,this._options.path,this._options.key,this._options.pingInterval);return e.on(M.Message,e=>{this._handleMessage(e)}),e.on(M.Error,e=>{this._abort(E.SocketError,e)}),e.on(M.Disconnected,()=>{this.disconnected||(this.emitError(E.Network,"Lost connection to server."),this.disconnect())}),e.on(M.Close,()=>{this.disconnected||this._abort(E.SocketClosed,"Underlying socket is already closed.")}),e}_initialize(e){this._id=e,this.socket.start(e,this._options.token)}_handleMessage(e){let t=e.type,n=e.payload,r=e.src;switch(t){case O.Open:this._lastServerId=this.id,this._open=!0,this.emit("open",this.id);break;case O.Error:this._abort(E.ServerError,n.msg);break;case O.IdTaken:this._abort(E.UnavailableID,`ID "${this.id}" is taken`);break;case O.InvalidKey:this._abort(E.InvalidKey,`API KEY "${this._options.key}" is invalid`);break;case O.Leave:eI.log(`Received leave message from ${r}`),this._cleanupPeer(r),this._connections.delete(r);break;case O.Expire:this.emitError(E.PeerUnavailable,`Could not connect to peer ${r}`);break;case O.Offer:{let e=n.connectionId,t=this.getConnection(r,e);if(t&&(t.close(),eI.warn(`Offer received for existing Connection ID:${e}`)),n.type===w.Media){let i=new eW(r,this,{connectionId:e,_payload:n,metadata:n.metadata});t=i,this._addConnection(r,t),this.emit("call",i)}else if(n.type===w.Data){let i=new this._serializers[n.serialization](r,this,{connectionId:e,_payload:n,metadata:n.metadata,label:n.label,serialization:n.serialization,reliable:n.reliable});t=i,this._addConnection(r,t),this.emit("connection",i)}else{eI.warn(`Received malformed connection type:${n.type}`);return}for(let n of this._getMessages(e))t.handleMessage(n);break}default:{if(!n){eI.warn(`You received a malformed message from ${r} of type ${t}`);return}let i=n.connectionId,o=this.getConnection(r,i);o&&o.peerConnection?o.handleMessage(e):i?this._storeMessage(i,e):eI.warn("You received an unrecognized message:",e)}}}_storeMessage(e,t){this._lostMessages.has(e)||this._lostMessages.set(e,[]),this._lostMessages.get(e).push(t)}_getMessages(e){let t=this._lostMessages.get(e);return t?(this._lostMessages.delete(e),t):[]}connect(e,t={}){if(t={serialization:"default",...t},this.disconnected){eI.warn("You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available."),this.emitError(E.Disconnected,"Cannot connect to new Peer after disconnecting from server.");return}let n=new this._serializers[t.serialization](e,this,t);return this._addConnection(e,n),n}call(e,t,n={}){if(this.disconnected){eI.warn("You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect."),this.emitError(E.Disconnected,"Cannot connect to new Peer after disconnecting from server.");return}if(!t){eI.error("To call a peer, you must provide a stream from your browser's `getUserMedia`.");return}let r=new eW(e,this,{...n,_stream:t});return this._addConnection(e,r),r}_addConnection(e,t){eI.log(`add connection ${t.type}:${t.connectionId} to peerId:${e}`),this._connections.has(e)||this._connections.set(e,[]),this._connections.get(e).push(t)}_removeConnection(e){let t=this._connections.get(e.peer);if(t){let n=t.indexOf(e);-1!==n&&t.splice(n,1)}this._lostMessages.delete(e.connectionId)}getConnection(e,t){let n=this._connections.get(e);if(!n)return null;for(let e of n)if(e.connectionId===t)return e;return null}_delayedAbort(e,t){setTimeout(()=>{this._abort(e,t)},0)}_abort(e,t){eI.error("Aborting!"),this.emitError(e,t),this._lastServerId?this.disconnect():this.destroy()}destroy(){this.destroyed||(eI.log(`Destroy peer with ID:${this.id}`),this.disconnect(),this._cleanup(),this._destroyed=!0,this.emit("close"))}_cleanup(){for(let e of this._connections.keys())this._cleanupPeer(e),this._connections.delete(e);this.socket.removeAllListeners()}_cleanupPeer(e){let t=this._connections.get(e);if(t)for(let e of t)e.close()}disconnect(){if(this.disconnected)return;let e=this.id;eI.log(`Disconnect peer with ID:${e}`),this._disconnected=!0,this._open=!1,this.socket.close(),this._lastServerId=e,this._id=null,this.emit("disconnected",e)}reconnect(){if(this.disconnected&&!this.destroyed)eI.log(`Attempting reconnection to server with ID ${this._lastServerId}`),this._disconnected=!1,this._initialize(this._lastServerId);else if(this.destroyed)throw Error("This peer cannot reconnect to the server. It has already been destroyed.");else if(this.disconnected||this.open)throw Error(`Peer ${this.id} cannot reconnect because it is not disconnected from the server!`);else eI.error("In a hurry? We're still trying to make the initial connection!")}listAllPeers(e=e=>{}){this._api.listAllPeers().then(t=>e(t)).catch(e=>this._abort(E.ServerError,e))}constructor(e,t){let n;if(super(),this._serializers={raw:eq,json:eQ,binary:eX,"binary-utf8":eX,default:eX},this._id=null,this._lastServerId=null,this._destroyed=!1,this._disconnected=!1,this._open=!1,this._connections=new Map,this._lostMessages=new Map,e&&e.constructor==Object?t=e:e&&(n=e.toString()),t={debug:0,host:ex.CLOUD_HOST,port:ex.CLOUD_PORT,path:"/",key:eZ.DEFAULT_KEY,token:ex.randomToken(),config:ex.defaultConfig,referrerPolicy:"strict-origin-when-cross-origin",serializers:{},...t},this._options=t,this._serializers={...this._serializers,...this.options.serializers},"/"===this._options.host&&(this._options.host=window.location.hostname),this._options.path&&("/"!==this._options.path[0]&&(this._options.path="/"+this._options.path),"/"!==this._options.path[this._options.path.length-1]&&(this._options.path+="/")),void 0===this._options.secure&&this._options.host!==ex.CLOUD_HOST?this._options.secure=ex.isSecure():this._options.host==ex.CLOUD_HOST&&(this._options.secure=!0),this._options.logFunction&&eI.setLogFunction(this._options.logFunction),eI.logLevel=this._options.debug||0,this._api=new eH(t),this._socket=this._createServerConnection(),!ex.supports.audioVideo&&!ex.supports.data){this._delayedAbort(E.BrowserIncompatible,"The current browser does not support WebRTC");return}if(n&&!ex.validateId(n)){this._delayedAbort(E.InvalidID,`ID "${n}" is invalid`);return}n?this._initialize(n):this._api.retrieveId().then(e=>this._initialize(e)).catch(e=>this._abort(E.ServerError,e))}}eZ.DEFAULT_KEY="peerjs",window.peerjs={Peer:eZ,util:ex},window.Peer=eZ})();
+</script>
+<script>/*******************************************************************************
+ * Copyright (c) 2013, 2016 IBM Corp.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
+ *
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v10.html
+ * and the Eclipse Distribution License is available at
+ *   http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ *******************************************************************************/
+(function(t,q){"object"===typeof exports&&"object"===typeof module?module.exports=q():"function"===typeof define&&define.amd?define(q):"object"===typeof exports?exports=q():t.Paho=q()})(this,function(){return function(t){function q(a,b,c){b[c++]=a>>8;b[c++]=a%256;return c}function r(a,b,c,k){k=q(b,c,k);E(a,c,k);return k+b}function n(a){for(var b=0,c=0;c<a.length;c++){var k=a.charCodeAt(c);2047<k?(55296<=k&&56319>=k&&(c++,b++),b+=3):127<k?b+=2:b++}return b}function E(a,b,c){for(var k=0;k<a.length;k++){var e=
+    a.charCodeAt(k);if(55296<=e&&56319>=e){var g=a.charCodeAt(++k);if(isNaN(g))throw Error(f(h.MALFORMED_UNICODE,[e,g]));e=(e-55296<<10)+(g-56320)+65536}127>=e?b[c++]=e:(2047>=e?b[c++]=e>>6&31|192:(65535>=e?b[c++]=e>>12&15|224:(b[c++]=e>>18&7|240,b[c++]=e>>12&63|128),b[c++]=e>>6&63|128),b[c++]=e&63|128)}return b}function F(a,b,c){for(var k="",e,g=b;g<b+c;){e=a[g++];if(!(128>e)){var m=a[g++]-128;if(0>m)throw Error(f(h.MALFORMED_UTF,[e.toString(16),m.toString(16),""]));if(224>e)e=64*(e-192)+m;else{var d=
+    a[g++]-128;if(0>d)throw Error(f(h.MALFORMED_UTF,[e.toString(16),m.toString(16),d.toString(16)]));if(240>e)e=4096*(e-224)+64*m+d;else{var l=a[g++]-128;if(0>l)throw Error(f(h.MALFORMED_UTF,[e.toString(16),m.toString(16),d.toString(16),l.toString(16)]));if(248>e)e=262144*(e-240)+4096*m+64*d+l;else throw Error(f(h.MALFORMED_UTF,[e.toString(16),m.toString(16),d.toString(16),l.toString(16)]));}}}65535<e&&(e-=65536,k+=String.fromCharCode(55296+(e>>10)),e=56320+(e&1023));k+=String.fromCharCode(e)}return k}
+    var s=t.localStorage||function(){var a={};return{setItem:function(b,c){a[b]=c},getItem:function(b){return a[b]},removeItem:function(b){delete a[b]}}}(),A=function(a,b){for(var c in a)if(a.hasOwnProperty(c))if(b.hasOwnProperty(c)){if(typeof a[c]!==b[c])throw Error(f(h.INVALID_TYPE,[typeof a[c],c]));}else{c="Unknown property, "+c+". Valid properties are:";for(var k in b)b.hasOwnProperty(k)&&(c=c+" "+k);throw Error(c);}},u=function(a,b){return function(){return a.apply(b,arguments)}},h={OK:{code:0,text:"AMQJSC0000I OK."},
+    CONNECT_TIMEOUT:{code:1,text:"AMQJSC0001E Connect timed out."},SUBSCRIBE_TIMEOUT:{code:2,text:"AMQJS0002E Subscribe timed out."},UNSUBSCRIBE_TIMEOUT:{code:3,text:"AMQJS0003E Unsubscribe timed out."},PING_TIMEOUT:{code:4,text:"AMQJS0004E Ping timed out."},INTERNAL_ERROR:{code:5,text:"AMQJS0005E Internal error. Error Message: {0}, Stack trace: {1}"},CONNACK_RETURNCODE:{code:6,text:"AMQJS0006E Bad Connack return code:{0} {1}."},SOCKET_ERROR:{code:7,text:"AMQJS0007E Socket error:{0}."},SOCKET_CLOSE:{code:8,
+    text:"AMQJS0008I Socket closed."},MALFORMED_UTF:{code:9,text:"AMQJS0009E Malformed UTF data:{0} {1} {2}."},UNSUPPORTED:{code:10,text:"AMQJS0010E {0} is not supported by this browser."},INVALID_STATE:{code:11,text:"AMQJS0011E Invalid state {0}."},INVALID_TYPE:{code:12,text:"AMQJS0012E Invalid type {0} for {1}."},INVALID_ARGUMENT:{code:13,text:"AMQJS0013E Invalid argument {0} for {1}."},UNSUPPORTED_OPERATION:{code:14,text:"AMQJS0014E Unsupported operation."},INVALID_STORED_DATA:{code:15,text:"AMQJS0015E Invalid data in local storage key\x3d{0} value\x3d{1}."},
+    INVALID_MQTT_MESSAGE_TYPE:{code:16,text:"AMQJS0016E Invalid MQTT message type {0}."},MALFORMED_UNICODE:{code:17,text:"AMQJS0017E Malformed Unicode string:{0} {1}."},BUFFER_FULL:{code:18,text:"AMQJS0018E Message buffer is full, maximum buffer size: {0}."}},H={0:"Connection Accepted",1:"Connection Refused: unacceptable protocol version",2:"Connection Refused: identifier rejected",3:"Connection Refused: server unavailable",4:"Connection Refused: bad user name or password",5:"Connection Refused: not authorized"},
+    f=function(a,b){var c=a.text;if(b)for(var k,e,g=0;g<b.length;g++)if(k="{"+g+"}",e=c.indexOf(k),0<e)var h=c.substring(0,e),c=c.substring(e+k.length),c=h+b[g]+c;return c},B=[0,6,77,81,73,115,100,112,3],C=[0,4,77,81,84,84,4],p=function(a,b){this.type=a;for(var c in b)b.hasOwnProperty(c)&&(this[c]=b[c])};p.prototype.encode=function(){var a=(this.type&15)<<4,b=0,c=[],k=0,e;void 0!==this.messageIdentifier&&(b+=2);switch(this.type){case 1:switch(this.mqttVersion){case 3:b+=B.length+3;break;case 4:b+=C.length+
+    3}b+=n(this.clientId)+2;void 0!==this.willMessage&&(b+=n(this.willMessage.destinationName)+2,e=this.willMessage.payloadBytes,e instanceof Uint8Array||(e=new Uint8Array(h)),b+=e.byteLength+2);void 0!==this.userName&&(b+=n(this.userName)+2);void 0!==this.password&&(b+=n(this.password)+2);break;case 8:for(var a=a|2,g=0;g<this.topics.length;g++)c[g]=n(this.topics[g]),b+=c[g]+2;b+=this.requestedQos.length;break;case 10:a|=2;for(g=0;g<this.topics.length;g++)c[g]=n(this.topics[g]),b+=c[g]+2;break;case 6:a|=
+    2;break;case 3:this.payloadMessage.duplicate&&(a|=8);a=a|=this.payloadMessage.qos<<1;this.payloadMessage.retained&&(a|=1);var k=n(this.payloadMessage.destinationName),h=this.payloadMessage.payloadBytes,b=b+(k+2)+h.byteLength;h instanceof ArrayBuffer?h=new Uint8Array(h):h instanceof Uint8Array||(h=new Uint8Array(h.buffer))}var f=b,g=Array(1),d=0;do{var z=f%128,f=f>>7;0<f&&(z|=128);g[d++]=z}while(0<f&&4>d);f=g.length+1;b=new ArrayBuffer(b+f);d=new Uint8Array(b);d[0]=a;d.set(g,1);if(3==this.type)f=r(this.payloadMessage.destinationName,
+    k,d,f);else if(1==this.type){switch(this.mqttVersion){case 3:d.set(B,f);f+=B.length;break;case 4:d.set(C,f),f+=C.length}a=0;this.cleanSession&&(a=2);void 0!==this.willMessage&&(a=a|4|this.willMessage.qos<<3,this.willMessage.retained&&(a|=32));void 0!==this.userName&&(a|=128);void 0!==this.password&&(a|=64);d[f++]=a;f=q(this.keepAliveInterval,d,f)}void 0!==this.messageIdentifier&&(f=q(this.messageIdentifier,d,f));switch(this.type){case 1:f=r(this.clientId,n(this.clientId),d,f);void 0!==this.willMessage&&
+    (f=r(this.willMessage.destinationName,n(this.willMessage.destinationName),d,f),f=q(e.byteLength,d,f),d.set(e,f),f+=e.byteLength);void 0!==this.userName&&(f=r(this.userName,n(this.userName),d,f));void 0!==this.password&&r(this.password,n(this.password),d,f);break;case 3:d.set(h,f);break;case 8:for(g=0;g<this.topics.length;g++)f=r(this.topics[g],c[g],d,f),d[f++]=this.requestedQos[g];break;case 10:for(g=0;g<this.topics.length;g++)f=r(this.topics[g],c[g],d,f)}return b};var G=function(a,b){this._client=
+    a;this._keepAliveInterval=1E3*b;this.isReset=!1;var c=(new p(12)).encode(),k=function(a){return function(){return e.apply(a)}},e=function(){this.isReset?(this.isReset=!1,this._client._trace("Pinger.doPing","send PINGREQ"),this._client.socket.send(c),this.timeout=setTimeout(k(this),this._keepAliveInterval)):(this._client._trace("Pinger.doPing","Timed out"),this._client._disconnected(h.PING_TIMEOUT.code,f(h.PING_TIMEOUT)))};this.reset=function(){this.isReset=!0;clearTimeout(this.timeout);0<this._keepAliveInterval&&
+    (this.timeout=setTimeout(k(this),this._keepAliveInterval))};this.cancel=function(){clearTimeout(this.timeout)}},v=function(a,b,c,f){b||(b=30);this.timeout=setTimeout(function(a,b,c){return function(){return a.apply(b,c)}}(c,a,f),1E3*b);this.cancel=function(){clearTimeout(this.timeout)}},d=function(a,b,c,d,e){if(!("WebSocket"in t&&null!==t.WebSocket))throw Error(f(h.UNSUPPORTED,["WebSocket"]));if(!("ArrayBuffer"in t&&null!==t.ArrayBuffer))throw Error(f(h.UNSUPPORTED,["ArrayBuffer"]));this._trace("Paho.Client",
+    a,b,c,d,e);this.host=b;this.port=c;this.path=d;this.uri=a;this.clientId=e;this._wsuri=null;this._localKey=b+":"+c+("/mqtt"!=d?":"+d:"")+":"+e+":";this._msg_queue=[];this._buffered_msg_queue=[];this._sentMessages={};this._receivedMessages={};this._notify_msg_sent={};this._message_identifier=1;this._sequence=0;for(var g in s)0!==g.indexOf("Sent:"+this._localKey)&&0!==g.indexOf("Received:"+this._localKey)||this.restore(g)};d.prototype.host=null;d.prototype.port=null;d.prototype.path=null;d.prototype.uri=
+    null;d.prototype.clientId=null;d.prototype.socket=null;d.prototype.connected=!1;d.prototype.maxMessageIdentifier=65536;d.prototype.connectOptions=null;d.prototype.hostIndex=null;d.prototype.onConnected=null;d.prototype.onConnectionLost=null;d.prototype.onMessageDelivered=null;d.prototype.onMessageArrived=null;d.prototype.traceFunction=null;d.prototype._msg_queue=null;d.prototype._buffered_msg_queue=null;d.prototype._connectTimeout=null;d.prototype.sendPinger=null;d.prototype.receivePinger=null;d.prototype._reconnectInterval=
+    1;d.prototype._reconnecting=!1;d.prototype._reconnectTimeout=null;d.prototype.disconnectedPublishing=!1;d.prototype.disconnectedBufferSize=5E3;d.prototype.receiveBuffer=null;d.prototype._traceBuffer=null;d.prototype._MAX_TRACE_ENTRIES=100;d.prototype.connect=function(a){var b=this._traceMask(a,"password");this._trace("Client.connect",b,this.socket,this.connected);if(this.connected)throw Error(f(h.INVALID_STATE,["already connected"]));if(this.socket)throw Error(f(h.INVALID_STATE,["already connected"]));
+    this._reconnecting&&(this._reconnectTimeout.cancel(),this._reconnectTimeout=null,this._reconnecting=!1);this.connectOptions=a;this._reconnectInterval=1;this._reconnecting=!1;a.uris?(this.hostIndex=0,this._doConnect(a.uris[0])):this._doConnect(this.uri)};d.prototype.subscribe=function(a,b){this._trace("Client.subscribe",a,b);if(!this.connected)throw Error(f(h.INVALID_STATE,["not connected"]));var c=new p(8);c.topics=a.constructor===Array?a:[a];void 0===b.qos&&(b.qos=0);c.requestedQos=[];for(var d=
+    0;d<c.topics.length;d++)c.requestedQos[d]=b.qos;b.onSuccess&&(c.onSuccess=function(a){b.onSuccess({invocationContext:b.invocationContext,grantedQos:a})});b.onFailure&&(c.onFailure=function(a){b.onFailure({invocationContext:b.invocationContext,errorCode:a,errorMessage:f(a)})});b.timeout&&(c.timeOut=new v(this,b.timeout,b.onFailure,[{invocationContext:b.invocationContext,errorCode:h.SUBSCRIBE_TIMEOUT.code,errorMessage:f(h.SUBSCRIBE_TIMEOUT)}]));this._requires_ack(c);this._schedule_message(c)};d.prototype.unsubscribe=
+    function(a,b){this._trace("Client.unsubscribe",a,b);if(!this.connected)throw Error(f(h.INVALID_STATE,["not connected"]));var c=new p(10);c.topics=a.constructor===Array?a:[a];b.onSuccess&&(c.callback=function(){b.onSuccess({invocationContext:b.invocationContext})});b.timeout&&(c.timeOut=new v(this,b.timeout,b.onFailure,[{invocationContext:b.invocationContext,errorCode:h.UNSUBSCRIBE_TIMEOUT.code,errorMessage:f(h.UNSUBSCRIBE_TIMEOUT)}]));this._requires_ack(c);this._schedule_message(c)};d.prototype.send=
+    function(a){this._trace("Client.send",a);var b=new p(3);b.payloadMessage=a;if(this.connected)0<a.qos?this._requires_ack(b):this.onMessageDelivered&&(this._notify_msg_sent[b]=this.onMessageDelivered(b.payloadMessage)),this._schedule_message(b);else if(this._reconnecting&&this.disconnectedPublishing){if(Object.keys(this._sentMessages).length+this._buffered_msg_queue.length>this.disconnectedBufferSize)throw Error(f(h.BUFFER_FULL,[this.disconnectedBufferSize]));0<a.qos?this._requires_ack(b):(b.sequence=
+    ++this._sequence,this._buffered_msg_queue.unshift(b))}else throw Error(f(h.INVALID_STATE,["not connected"]));};d.prototype.disconnect=function(){this._trace("Client.disconnect");this._reconnecting&&(this._reconnectTimeout.cancel(),this._reconnectTimeout=null,this._reconnecting=!1);if(!this.socket)throw Error(f(h.INVALID_STATE,["not connecting or connected"]));var a=new p(14);this._notify_msg_sent[a]=u(this._disconnected,this);this._schedule_message(a)};d.prototype.getTraceLog=function(){if(null!==
+    this._traceBuffer){this._trace("Client.getTraceLog",new Date);this._trace("Client.getTraceLog in flight messages",this._sentMessages.length);for(var a in this._sentMessages)this._trace("_sentMessages ",a,this._sentMessages[a]);for(a in this._receivedMessages)this._trace("_receivedMessages ",a,this._receivedMessages[a]);return this._traceBuffer}};d.prototype.startTrace=function(){null===this._traceBuffer&&(this._traceBuffer=[]);this._trace("Client.startTrace",new Date,"1.1.0-2018-11-22T11:35:36Z")};d.prototype.stopTrace=
+    function(){delete this._traceBuffer};d.prototype._doConnect=function(a){this.connectOptions.useSSL&&(a=a.split(":"),a[0]="wss",a=a.join(":"));this._wsuri=a;this.connected=!1;this.socket=4>this.connectOptions.mqttVersion?new WebSocket(a,["mqttv3.1"]):new WebSocket(a,["mqtt"]);this.socket.binaryType="arraybuffer";this.socket.onopen=u(this._on_socket_open,this);this.socket.onmessage=u(this._on_socket_message,this);this.socket.onerror=u(this._on_socket_error,this);this.socket.onclose=u(this._on_socket_close,
+    this);this.sendPinger=new G(this,this.connectOptions.keepAliveInterval);this.receivePinger=new G(this,this.connectOptions.keepAliveInterval);this._connectTimeout&&(this._connectTimeout.cancel(),this._connectTimeout=null);this._connectTimeout=new v(this,this.connectOptions.timeout,this._disconnected,[h.CONNECT_TIMEOUT.code,f(h.CONNECT_TIMEOUT)])};d.prototype._schedule_message=function(a){this._msg_queue.unshift(a);this.connected&&this._process_queue()};d.prototype.store=function(a,b){var c={type:b.type,
+    messageIdentifier:b.messageIdentifier,version:1};switch(b.type){case 3:b.pubRecReceived&&(c.pubRecReceived=!0);c.payloadMessage={};for(var d="",e=b.payloadMessage.payloadBytes,g=0;g<e.length;g++)d=15>=e[g]?d+"0"+e[g].toString(16):d+e[g].toString(16);c.payloadMessage.payloadHex=d;c.payloadMessage.qos=b.payloadMessage.qos;c.payloadMessage.destinationName=b.payloadMessage.destinationName;b.payloadMessage.duplicate&&(c.payloadMessage.duplicate=!0);b.payloadMessage.retained&&(c.payloadMessage.retained=
+    !0);0===a.indexOf("Sent:")&&(void 0===b.sequence&&(b.sequence=++this._sequence),c.sequence=b.sequence);break;default:throw Error(f(h.INVALID_STORED_DATA,[a+this._localKey+b.messageIdentifier,c]));}s.setItem(a+this._localKey+b.messageIdentifier,JSON.stringify(c))};d.prototype.restore=function(a){var b=s.getItem(a),c=JSON.parse(b),d=new p(c.type,c);switch(c.type){case 3:for(var b=c.payloadMessage.payloadHex,e=new ArrayBuffer(b.length/2),e=new Uint8Array(e),g=0;2<=b.length;){var m=parseInt(b.substring(0,
+    2),16),b=b.substring(2,b.length);e[g++]=m}b=new w(e);b.qos=c.payloadMessage.qos;b.destinationName=c.payloadMessage.destinationName;c.payloadMessage.duplicate&&(b.duplicate=!0);c.payloadMessage.retained&&(b.retained=!0);d.payloadMessage=b;break;default:throw Error(f(h.INVALID_STORED_DATA,[a,b]));}0===a.indexOf("Sent:"+this._localKey)?(d.payloadMessage.duplicate=!0,this._sentMessages[d.messageIdentifier]=d):0===a.indexOf("Received:"+this._localKey)&&(this._receivedMessages[d.messageIdentifier]=d)};
+    d.prototype._process_queue=function(){for(var a=null;a=this._msg_queue.pop();)this._socket_send(a),this._notify_msg_sent[a]&&(this._notify_msg_sent[a](),delete this._notify_msg_sent[a])};d.prototype._requires_ack=function(a){var b=Object.keys(this._sentMessages).length;if(b>this.maxMessageIdentifier)throw Error("Too many messages:"+b);for(;void 0!==this._sentMessages[this._message_identifier];)this._message_identifier++;a.messageIdentifier=this._message_identifier;this._sentMessages[a.messageIdentifier]=
+    a;3===a.type&&this.store("Sent:",a);this._message_identifier===this.maxMessageIdentifier&&(this._message_identifier=1)};d.prototype._on_socket_open=function(){var a=new p(1,this.connectOptions);a.clientId=this.clientId;this._socket_send(a)};d.prototype._on_socket_message=function(a){this._trace("Client._on_socket_message",a.data);a=this._deframeMessages(a.data);for(var b=0;b<a.length;b+=1)this._handleMessage(a[b])};d.prototype._deframeMessages=function(a){a=new Uint8Array(a);var b=[];if(this.receiveBuffer){var c=
+    new Uint8Array(this.receiveBuffer.length+a.length);c.set(this.receiveBuffer);c.set(a,this.receiveBuffer.length);a=c;delete this.receiveBuffer}try{for(c=0;c<a.length;){var d;a:{var e=a,g=c,m=g,n=e[g],l=n>>4,z=n&15,g=g+1,x=void 0,D=0,q=1;do{if(g==e.length){d=[null,m];break a}x=e[g++];D+=(x&127)*q;q*=128}while(0!==(x&128));x=g+D;if(x>e.length)d=[null,m];else{var y=new p(l);switch(l){case 2:e[g++]&1&&(y.sessionPresent=!0);y.returnCode=e[g++];break;case 3:var m=z>>1&3,s=256*e[g]+e[g+1],g=g+2,t=F(e,g,s),
+    g=g+s;0<m&&(y.messageIdentifier=256*e[g]+e[g+1],g+=2);var r=new w(e.subarray(g,x));1==(z&1)&&(r.retained=!0);8==(z&8)&&(r.duplicate=!0);r.qos=m;r.destinationName=t;y.payloadMessage=r;break;case 4:case 5:case 6:case 7:case 11:y.messageIdentifier=256*e[g]+e[g+1];break;case 9:y.messageIdentifier=256*e[g]+e[g+1],g+=2,y.returnCode=e.subarray(g,x)}d=[y,x]}}var u=d[0],c=d[1];if(null!==u)b.push(u);else break}c<a.length&&(this.receiveBuffer=a.subarray(c))}catch(v){d="undefined"==v.hasOwnProperty("stack")?
+    v.stack.toString():"No Error Stack Available";this._disconnected(h.INTERNAL_ERROR.code,f(h.INTERNAL_ERROR,[v.message,d]));return}return b};d.prototype._handleMessage=function(a){this._trace("Client._handleMessage",a);try{switch(a.type){case 2:this._connectTimeout.cancel();this._reconnectTimeout&&this._reconnectTimeout.cancel();if(this.connectOptions.cleanSession){for(var b in this._sentMessages){var c=this._sentMessages[b];s.removeItem("Sent:"+this._localKey+c.messageIdentifier)}this._sentMessages=
+    {};for(b in this._receivedMessages){var d=this._receivedMessages[b];s.removeItem("Received:"+this._localKey+d.messageIdentifier)}this._receivedMessages={}}if(0===a.returnCode)this.connected=!0,this.connectOptions.uris&&(this.hostIndex=this.connectOptions.uris.length);else{this._disconnected(h.CONNACK_RETURNCODE.code,f(h.CONNACK_RETURNCODE,[a.returnCode,H[a.returnCode]]));break}a=[];for(var e in this._sentMessages)this._sentMessages.hasOwnProperty(e)&&a.push(this._sentMessages[e]);if(0<this._buffered_msg_queue.length)for(e=
+    null;e=this._buffered_msg_queue.pop();)a.push(e),this.onMessageDelivered&&(this._notify_msg_sent[e]=this.onMessageDelivered(e.payloadMessage));a=a.sort(function(a,b){return a.sequence-b.sequence});e=0;for(var g=a.length;e<g;e++)if(c=a[e],3==c.type&&c.pubRecReceived){var m=new p(6,{messageIdentifier:c.messageIdentifier});this._schedule_message(m)}else this._schedule_message(c);if(this.connectOptions.onSuccess)this.connectOptions.onSuccess({invocationContext:this.connectOptions.invocationContext});
+    c=!1;this._reconnecting&&(c=!0,this._reconnectInterval=1,this._reconnecting=!1);this._connected(c,this._wsuri);this._process_queue();break;case 3:this._receivePublish(a);break;case 4:if(c=this._sentMessages[a.messageIdentifier])if(delete this._sentMessages[a.messageIdentifier],s.removeItem("Sent:"+this._localKey+a.messageIdentifier),this.onMessageDelivered)this.onMessageDelivered(c.payloadMessage);break;case 5:if(c=this._sentMessages[a.messageIdentifier])c.pubRecReceived=!0,m=new p(6,{messageIdentifier:a.messageIdentifier}),
+    this.store("Sent:",c),this._schedule_message(m);break;case 6:d=this._receivedMessages[a.messageIdentifier];s.removeItem("Received:"+this._localKey+a.messageIdentifier);d&&(this._receiveMessage(d),delete this._receivedMessages[a.messageIdentifier]);var n=new p(7,{messageIdentifier:a.messageIdentifier});this._schedule_message(n);break;case 7:c=this._sentMessages[a.messageIdentifier];delete this._sentMessages[a.messageIdentifier];s.removeItem("Sent:"+this._localKey+a.messageIdentifier);if(this.onMessageDelivered)this.onMessageDelivered(c.payloadMessage);
+    break;case 9:if(c=this._sentMessages[a.messageIdentifier]){c.timeOut&&c.timeOut.cancel();if(128===a.returnCode[0]){if(c.onFailure)c.onFailure(a.returnCode)}else if(c.onSuccess)c.onSuccess(a.returnCode);delete this._sentMessages[a.messageIdentifier]}break;case 11:if(c=this._sentMessages[a.messageIdentifier])c.timeOut&&c.timeOut.cancel(),c.callback&&c.callback(),delete this._sentMessages[a.messageIdentifier];break;case 13:this.sendPinger.reset();break;case 14:this._disconnected(h.INVALID_MQTT_MESSAGE_TYPE.code,
+    f(h.INVALID_MQTT_MESSAGE_TYPE,[a.type]));break;default:this._disconnected(h.INVALID_MQTT_MESSAGE_TYPE.code,f(h.INVALID_MQTT_MESSAGE_TYPE,[a.type]))}}catch(l){c="undefined"==l.hasOwnProperty("stack")?l.stack.toString():"No Error Stack Available",this._disconnected(h.INTERNAL_ERROR.code,f(h.INTERNAL_ERROR,[l.message,c]))}};d.prototype._on_socket_error=function(a){this._reconnecting||this._disconnected(h.SOCKET_ERROR.code,f(h.SOCKET_ERROR,[a.data]))};d.prototype._on_socket_close=function(){this._reconnecting||
+    this._disconnected(h.SOCKET_CLOSE.code,f(h.SOCKET_CLOSE))};d.prototype._socket_send=function(a){if(1==a.type){var b=this._traceMask(a,"password");this._trace("Client._socket_send",b)}else this._trace("Client._socket_send",a);this.socket.send(a.encode());this.sendPinger.reset()};d.prototype._receivePublish=function(a){switch(a.payloadMessage.qos){case "undefined":case 0:this._receiveMessage(a);break;case 1:var b=new p(4,{messageIdentifier:a.messageIdentifier});this._schedule_message(b);this._receiveMessage(a);
+    break;case 2:this._receivedMessages[a.messageIdentifier]=a;this.store("Received:",a);a=new p(5,{messageIdentifier:a.messageIdentifier});this._schedule_message(a);break;default:throw Error("Invaild qos\x3d"+a.payloadMessage.qos);}};d.prototype._receiveMessage=function(a){if(this.onMessageArrived)this.onMessageArrived(a.payloadMessage)};d.prototype._connected=function(a,b){if(this.onConnected)this.onConnected(a,b)};d.prototype._reconnect=function(){this._trace("Client._reconnect");this.connected||(this._reconnecting=
+    !0,this.sendPinger.cancel(),this.receivePinger.cancel(),128>this._reconnectInterval&&(this._reconnectInterval*=2),this.connectOptions.uris?(this.hostIndex=0,this._doConnect(this.connectOptions.uris[0])):this._doConnect(this.uri))};d.prototype._disconnected=function(a,b){this._trace("Client._disconnected",a,b);if(void 0!==a&&this._reconnecting)this._reconnectTimeout=new v(this,this._reconnectInterval,this._reconnect);else if(this.sendPinger.cancel(),this.receivePinger.cancel(),this._connectTimeout&&
+    (this._connectTimeout.cancel(),this._connectTimeout=null),this._msg_queue=[],this._buffered_msg_queue=[],this._notify_msg_sent={},this.socket&&(this.socket.onopen=null,this.socket.onmessage=null,this.socket.onerror=null,this.socket.onclose=null,1===this.socket.readyState&&this.socket.close(),delete this.socket),this.connectOptions.uris&&this.hostIndex<this.connectOptions.uris.length-1)this.hostIndex++,this._doConnect(this.connectOptions.uris[this.hostIndex]);else if(void 0===a&&(a=h.OK.code,b=f(h.OK)),
+    this.connected){this.connected=!1;if(this.onConnectionLost)this.onConnectionLost({errorCode:a,errorMessage:b,reconnect:this.connectOptions.reconnect,uri:this._wsuri});a!==h.OK.code&&this.connectOptions.reconnect&&(this._reconnectInterval=1,this._reconnect())}else if(4===this.connectOptions.mqttVersion&&!1===this.connectOptions.mqttVersionExplicit)this._trace("Failed to connect V4, dropping back to V3"),this.connectOptions.mqttVersion=3,this.connectOptions.uris?(this.hostIndex=0,this._doConnect(this.connectOptions.uris[0])):
+    this._doConnect(this.uri);else if(this.connectOptions.onFailure)this.connectOptions.onFailure({invocationContext:this.connectOptions.invocationContext,errorCode:a,errorMessage:b})};d.prototype._trace=function(){if(this.traceFunction){var a=Array.prototype.slice.call(arguments),b;for(b in a)"undefined"!==typeof a[b]&&a.splice(b,1,JSON.stringify(a[b]));b=a.join("");this.traceFunction({severity:"Debug",message:b})}if(null!==this._traceBuffer)for(b=0,a=arguments.length;b<a;b++)this._traceBuffer.length==
+    this._MAX_TRACE_ENTRIES&&this._traceBuffer.shift(),0===b?this._traceBuffer.push(arguments[b]):"undefined"===typeof arguments[b]?this._traceBuffer.push(arguments[b]):this._traceBuffer.push("  "+JSON.stringify(arguments[b]))};d.prototype._traceMask=function(a,b){var c={},d;for(d in a)a.hasOwnProperty(d)&&(c[d]=d==b?"******":a[d]);return c};var w=function(a){var b;if("string"===typeof a||a instanceof ArrayBuffer||ArrayBuffer.isView(a)&&!(a instanceof DataView))b=a;else throw f(h.INVALID_ARGUMENT,[a,
+    "newPayload"]);var c,d=0,e=!1,g=!1;Object.defineProperties(this,{payloadString:{enumerable:!0,get:function(){return"string"===typeof b?b:F(b,0,b.length)}},payloadBytes:{enumerable:!0,get:function(){if("string"===typeof b){var a=new ArrayBuffer(n(b)),a=new Uint8Array(a);E(b,a,0);return a}return b}},destinationName:{enumerable:!0,get:function(){return c},set:function(a){if("string"===typeof a)c=a;else throw Error(f(h.INVALID_ARGUMENT,[a,"newDestinationName"]));}},qos:{enumerable:!0,get:function(){return d},
+    set:function(a){if(0===a||1===a||2===a)d=a;else throw Error("Invalid argument:"+a);}},retained:{enumerable:!0,get:function(){return e},set:function(a){if("boolean"===typeof a)e=a;else throw Error(f(h.INVALID_ARGUMENT,[a,"newRetained"]));}},topic:{enumerable:!0,get:function(){return c},set:function(a){c=a}},duplicate:{enumerable:!0,get:function(){return g},set:function(a){g=a}}})};return{Client:function(a,b,c,k){var e;if("string"!==typeof a)throw Error(f(h.INVALID_TYPE,[typeof a,"host"]));if(2==arguments.length){k=
+    b;e=a;var g=e.match(/^(wss?):\/\/((\[(.+)\])|([^\/]+?))(:(\d+))?(\/.*)$/);if(g)a=g[4]||g[2],b=parseInt(g[7]),c=g[8];else throw Error(f(h.INVALID_ARGUMENT,[a,"host"]));}else{3==arguments.length&&(k=c,c="/mqtt");if("number"!==typeof b||0>b)throw Error(f(h.INVALID_TYPE,[typeof b,"port"]));if("string"!==typeof c)throw Error(f(h.INVALID_TYPE,[typeof c,"path"]));e="ws://"+(-1!==a.indexOf(":")&&"["!==a.slice(0,1)&&"]"!==a.slice(-1)?"["+a+"]":a)+":"+b+c}for(var m=g=0;m<k.length;m++){var n=k.charCodeAt(m);
+    55296<=n&&56319>=n&&m++;g++}if("string"!==typeof k||65535<g)throw Error(f(h.INVALID_ARGUMENT,[k,"clientId"]));var l=new d(e,a,b,c,k);Object.defineProperties(this,{host:{get:function(){return a},set:function(){throw Error(f(h.UNSUPPORTED_OPERATION));}},port:{get:function(){return b},set:function(){throw Error(f(h.UNSUPPORTED_OPERATION));}},path:{get:function(){return c},set:function(){throw Error(f(h.UNSUPPORTED_OPERATION));}},uri:{get:function(){return e},set:function(){throw Error(f(h.UNSUPPORTED_OPERATION));
+    }},clientId:{get:function(){return l.clientId},set:function(){throw Error(f(h.UNSUPPORTED_OPERATION));}},onConnected:{get:function(){return l.onConnected},set:function(a){if("function"===typeof a)l.onConnected=a;else throw Error(f(h.INVALID_TYPE,[typeof a,"onConnected"]));}},disconnectedPublishing:{get:function(){return l.disconnectedPublishing},set:function(a){l.disconnectedPublishing=a}},disconnectedBufferSize:{get:function(){return l.disconnectedBufferSize},set:function(a){l.disconnectedBufferSize=
+    a}},onConnectionLost:{get:function(){return l.onConnectionLost},set:function(a){if("function"===typeof a)l.onConnectionLost=a;else throw Error(f(h.INVALID_TYPE,[typeof a,"onConnectionLost"]));}},onMessageDelivered:{get:function(){return l.onMessageDelivered},set:function(a){if("function"===typeof a)l.onMessageDelivered=a;else throw Error(f(h.INVALID_TYPE,[typeof a,"onMessageDelivered"]));}},onMessageArrived:{get:function(){return l.onMessageArrived},set:function(a){if("function"===typeof a)l.onMessageArrived=
+    a;else throw Error(f(h.INVALID_TYPE,[typeof a,"onMessageArrived"]));}},trace:{get:function(){return l.traceFunction},set:function(a){if("function"===typeof a)l.traceFunction=a;else throw Error(f(h.INVALID_TYPE,[typeof a,"onTrace"]));}}});this.connect=function(a){a=a||{};A(a,{timeout:"number",userName:"string",password:"string",willMessage:"object",keepAliveInterval:"number",cleanSession:"boolean",useSSL:"boolean",invocationContext:"object",onSuccess:"function",onFailure:"function",hosts:"object",
+    ports:"object",reconnect:"boolean",mqttVersion:"number",mqttVersionExplicit:"boolean",uris:"object"});void 0===a.keepAliveInterval&&(a.keepAliveInterval=60);if(4<a.mqttVersion||3>a.mqttVersion)throw Error(f(h.INVALID_ARGUMENT,[a.mqttVersion,"connectOptions.mqttVersion"]));void 0===a.mqttVersion?(a.mqttVersionExplicit=!1,a.mqttVersion=4):a.mqttVersionExplicit=!0;if(void 0!==a.password&&void 0===a.userName)throw Error(f(h.INVALID_ARGUMENT,[a.password,"connectOptions.password"]));if(a.willMessage){if(!(a.willMessage instanceof
+    w))throw Error(f(h.INVALID_TYPE,[a.willMessage,"connectOptions.willMessage"]));a.willMessage.stringPayload=null;if("undefined"===typeof a.willMessage.destinationName)throw Error(f(h.INVALID_TYPE,[typeof a.willMessage.destinationName,"connectOptions.willMessage.destinationName"]));}"undefined"===typeof a.cleanSession&&(a.cleanSession=!0);if(a.hosts){if(!(a.hosts instanceof Array))throw Error(f(h.INVALID_ARGUMENT,[a.hosts,"connectOptions.hosts"]));if(1>a.hosts.length)throw Error(f(h.INVALID_ARGUMENT,
+    [a.hosts,"connectOptions.hosts"]));for(var b=!1,d=0;d<a.hosts.length;d++){if("string"!==typeof a.hosts[d])throw Error(f(h.INVALID_TYPE,[typeof a.hosts[d],"connectOptions.hosts["+d+"]"]));if(/^(wss?):\/\/((\[(.+)\])|([^\/]+?))(:(\d+))?(\/.*)$/.test(a.hosts[d]))if(0===d)b=!0;else{if(!b)throw Error(f(h.INVALID_ARGUMENT,[a.hosts[d],"connectOptions.hosts["+d+"]"]));}else if(b)throw Error(f(h.INVALID_ARGUMENT,[a.hosts[d],"connectOptions.hosts["+d+"]"]));}if(b)a.uris=a.hosts;else{if(!a.ports)throw Error(f(h.INVALID_ARGUMENT,
+    [a.ports,"connectOptions.ports"]));if(!(a.ports instanceof Array))throw Error(f(h.INVALID_ARGUMENT,[a.ports,"connectOptions.ports"]));if(a.hosts.length!==a.ports.length)throw Error(f(h.INVALID_ARGUMENT,[a.ports,"connectOptions.ports"]));a.uris=[];for(d=0;d<a.hosts.length;d++){if("number"!==typeof a.ports[d]||0>a.ports[d])throw Error(f(h.INVALID_TYPE,[typeof a.ports[d],"connectOptions.ports["+d+"]"]));var b=a.hosts[d],g=a.ports[d];e="ws://"+(-1!==b.indexOf(":")?"["+b+"]":b)+":"+g+c;a.uris.push(e)}}}l.connect(a)};
+    this.subscribe=function(a,b){if("string"!==typeof a&&a.constructor!==Array)throw Error("Invalid argument:"+a);b=b||{};A(b,{qos:"number",invocationContext:"object",onSuccess:"function",onFailure:"function",timeout:"number"});if(b.timeout&&!b.onFailure)throw Error("subscribeOptions.timeout specified with no onFailure callback.");if("undefined"!==typeof b.qos&&0!==b.qos&&1!==b.qos&&2!==b.qos)throw Error(f(h.INVALID_ARGUMENT,[b.qos,"subscribeOptions.qos"]));l.subscribe(a,b)};this.unsubscribe=function(a,
+    b){if("string"!==typeof a&&a.constructor!==Array)throw Error("Invalid argument:"+a);b=b||{};A(b,{invocationContext:"object",onSuccess:"function",onFailure:"function",timeout:"number"});if(b.timeout&&!b.onFailure)throw Error("unsubscribeOptions.timeout specified with no onFailure callback.");l.unsubscribe(a,b)};this.send=function(a,b,c,d){var e;if(0===arguments.length)throw Error("Invalid argument.length");if(1==arguments.length){if(!(a instanceof w)&&"string"!==typeof a)throw Error("Invalid argument:"+
+    typeof a);e=a;if("undefined"===typeof e.destinationName)throw Error(f(h.INVALID_ARGUMENT,[e.destinationName,"Message.destinationName"]));}else e=new w(b),e.destinationName=a,3<=arguments.length&&(e.qos=c),4<=arguments.length&&(e.retained=d);l.send(e)};this.publish=function(a,b,c,d){var e;if(0===arguments.length)throw Error("Invalid argument.length");if(1==arguments.length){if(!(a instanceof w)&&"string"!==typeof a)throw Error("Invalid argument:"+typeof a);e=a;if("undefined"===typeof e.destinationName)throw Error(f(h.INVALID_ARGUMENT,
+    [e.destinationName,"Message.destinationName"]));}else e=new w(b),e.destinationName=a,3<=arguments.length&&(e.qos=c),4<=arguments.length&&(e.retained=d);l.send(e)};this.disconnect=function(){l.disconnect()};this.getTraceLog=function(){return l.getTraceLog()};this.startTrace=function(){l.startTrace()};this.stopTrace=function(){l.stopTrace()};this.isConnected=function(){return l.connected}},Message:w}}("undefined"!==typeof global?global:"undefined"!==typeof self?self:"undefined"!==typeof window?window:
+    {})});</script>
+<script>// ---------- Game Night kit: device id, sounds, turn alerts, emoji reactions ----------
+const Kit = (() => {
+  const st = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+    set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
+  };
+  // A random id that stays on this device, so the host can keep each friend's record.
+  function deviceId() {
+    let d = st.get('gamenight:device', null);
+    if (typeof d !== 'string' || !/^[a-z0-9]{8,32}$/.test(d)) {
+      d = (Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^a-z0-9]/g, '').slice(0, 20);
+      st.set('gamenight:device', d);
+    }
+    return d;
+  }
+
+  // ----- sounds, made on the fly with Web Audio (no files to load) -----
+  let ctx = null;
+  let muted = !!st.get('gamenight:mute', false);
+  function unlock() {
+    try {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch {}
+  }
+  document.addEventListener('pointerdown', unlock, {passive: true});
+  document.addEventListener('keydown', unlock);
+  function tone(freq, at, dur, type = 'sine', vol = 0.15, slide = 0) {
+    const t = ctx.currentTime + at;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start(t);
+    o.stop(t + dur + 0.03);
+  }
+  function knock(at, vol, freq) { // a piece set down on a wooden board
+    const t = ctx.currentTime + at, len = 0.07;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 4);
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = buf;
+    f.type = 'bandpass';
+    f.frequency.value = freq;
+    f.Q.value = 1.4;
+    g.gain.value = vol;
+    src.connect(f);
+    f.connect(g);
+    g.connect(ctx.destination);
+    src.start(t);
+  }
+  const SOUNDS = {
+    move: () => { knock(0, 1.1, 1100); tone(170, 0, 0.07, 'sine', 0.1); },
+    capture: () => { knock(0, 1.2, 800); knock(0.06, 0.9, 560); tone(130, 0, 0.12, 'sine', 0.12); },
+    check: () => { knock(0, 1.1, 1100); tone(1046, 0.03, 0.2, 'triangle', 0.07); },
+    turn: () => { tone(659, 0, 0.16, 'sine', 0.13); tone(880, 0.13, 0.24, 'sine', 0.13); },
+    alert: () => { tone(523, 0, 0.13, 'triangle', 0.11); tone(784, 0.11, 0.2, 'triangle', 0.11); },
+    react: () => tone(480, 0, 0.12, 'sine', 0.09, 1.9),
+    win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.1, 0.26, 'triangle', 0.11)),
+    lose: () => [392, 330, 262].forEach((f, i) => tone(f, i * 0.14, 0.3, 'sine', 0.09))
+  };
+  function play(name) {
+    if (muted || !ctx || ctx.state !== 'running' || !SOUNDS[name]) return;
+    try { SOUNDS[name](); } catch {}
+  }
+  const SPEAKER_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  const SPEAKER_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  function muteButton(btn) {
+    const paint = () => {
+      btn.innerHTML = muted ? SPEAKER_OFF : SPEAKER_ON;
+      btn.setAttribute('aria-label', muted ? 'Turn sound on' : 'Turn sound off');
+      btn.title = muted ? 'Sound off' : 'Sound on';
+    };
+    btn.addEventListener('click', () => { muted = !muted; st.set('gamenight:mute', muted); unlock(); paint(); if (!muted) play('alert'); });
+    paint();
+  }
+
+  // ----- turn alerts: sound, a buzz where the phone allows it, and a blinking tab title while you look away -----
+  let blinkTimer = 0, baseTitle = document.title;
+  function stopBlink() { if (!blinkTimer) return; clearInterval(blinkTimer); blinkTimer = 0; document.title = baseTitle; }
+  function blink(msg) {
+    if (document.visibilityState === 'visible' && document.hasFocus()) return;
+    if (!blinkTimer) baseTitle = document.title;
+    clearInterval(blinkTimer);
+    let on = true;
+    document.title = msg;
+    blinkTimer = setInterval(() => { on = !on; document.title = on ? msg : baseTitle; }, 900);
+  }
+  window.addEventListener('focus', stopBlink);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') stopBlink(); });
+  function buzz(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {} }
+  function alertTurn(msg = 'Your turn!') { play('turn'); buzz([90, 60, 150]); blink('● ' + msg); }
+  function alertSoft(msg) { play('alert'); buzz(70); blink('● ' + msg); }
+
+  // ----- emoji reactions -----
+  const EMOJI = ['😂', '😤', '👏', '🔥', '😭', '😈'];
+  let lastSent = 0;
+  function reactionBar(el, onPick) {
+    el.innerHTML = EMOJI.map(e => `<button type="button" class="react-btn" data-e="${e}" aria-label="Send ${e}">${e}</button>`).join('');
+    el.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-e]');
+      if (!b) return;
+      if (Date.now() - lastSent < 700) return;
+      lastSent = Date.now();
+      onPick(b.dataset.e);
+    });
+  }
+  const validEmoji = e => EMOJI.includes(e);
+  let popSlot = 0;
+  function showReaction(emoji, name) {
+    if (!validEmoji(emoji)) return;
+    const el = document.createElement('div');
+    el.className = 'react-pop';
+    el.style.left = (30 + (popSlot++ % 4) * 13) + '%';
+    const big = document.createElement('span');
+    big.className = 'react-emoji';
+    big.textContent = emoji;
+    const who = document.createElement('span');
+    who.className = 'react-name';
+    who.textContent = name || '';
+    el.append(big, who);
+    document.body.append(el);
+    setTimeout(() => el.remove(), 2300);
+    play('react');
+  }
+
+  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st};
+})();
+
+</script>
+<script>// ---------- connections: PeerJS first, an encrypted MQTT relay as the backup ----------
+// Both sides see the same "conn" shape: send(obj), close(), on('data' | 'close', fn), .open, .via ('p2p' | 'relay').
+const Link = (() => {
+  const params = new URLSearchParams(location.search);
+  const store = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+    set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
+  };
+  // Test hooks: ?peerserver=host:port (self-hosted PeerJS), ?relay=ws://host:port/path (self-hosted broker), ?forcerelay=1, ?norelay=1.
+  function peerOptions() {
+    const s = params.get('peerserver');
+    if (!s) return {debug: 0};
+    const [host, port] = s.split(':');
+    return {debug: 0, host, port: Number(port) || 9000, path: '/', secure: false};
+  }
+  const BROKERS = params.get('relay') ? [params.get('relay')] : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+  const noRelay = params.get('norelay') === '1' || typeof Paho === 'undefined' || !(window.crypto && crypto.subtle);
+  const forceRelay = params.get('forcerelay') === '1';
+  const rid = () => Math.random().toString(36).slice(2, 12);
+  function newCode() {
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let s = '';
+    for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)];
+    return s;
+  }
+
+  // ----- keep-alive: every open conn is pinged; one that goes quiet for 14s is closed -----
+  const tracked = new Set();
+  function track(conn) {
+    conn._heard = Date.now();
+    conn.on('data', () => { conn._heard = Date.now(); });
+    tracked.add(conn);
+  }
+  setInterval(() => {
+    for (const c of tracked) {
+      if (!c.open || c._closed) { tracked.delete(c); continue; }
+      if (Date.now() - c._heard > 14000) { tracked.delete(c); try { c.close(); } catch {} continue; }
+      try { c.send({type: 'ping'}); } catch {}
+    }
+  }, 4000);
+
+  // ----- relay crypto: the table code turns into an AES key and a topic nobody can guess from the code alone -----
+  const te = new TextEncoder(), td = new TextDecoder();
+  const b64 = buf => { let s = ''; for (const b of new Uint8Array(buf)) s += String.fromCharCode(b); return btoa(s); };
+  const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const rooms = new Map();
+  function room(game, code) {
+    const id = game + ':' + code;
+    if (!rooms.has(id)) {
+      rooms.set(id, (async () => {
+        const base = await crypto.subtle.importKey('raw', te.encode(`gamenight:${id}`), 'PBKDF2', false, ['deriveBits']);
+        const bits = new Uint8Array(await crypto.subtle.deriveBits({name: 'PBKDF2', salt: te.encode('gamenight-relay-v1'), iterations: 20000, hash: 'SHA-256'}, base, 384));
+        const key = await crypto.subtle.importKey('raw', bits.slice(0, 32), 'AES-GCM', false, ['encrypt', 'decrypt']);
+        return {key, topic: 'gn1/' + [...bits.slice(32)].map(b => b.toString(16).padStart(2, '0')).join('')};
+      })());
+    }
+    return rooms.get(id);
+  }
+  async function seal(r, obj) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({name: 'AES-GCM', iv}, r.key, te.encode(JSON.stringify(obj)));
+    return JSON.stringify({i: b64(iv), d: b64(ct)});
+  }
+  async function unseal(r, text) {
+    try {
+      const o = JSON.parse(text);
+      return JSON.parse(td.decode(await crypto.subtle.decrypt({name: 'AES-GCM', iv: unb64(o.i)}, r.key, unb64(o.d))));
+    } catch { return null; }
+  }
+
+  // ----- one shared connection per broker -----
+  const brokers = new Map();
+  function broker(url) {
+    if (brokers.has(url)) return brokers.get(url);
+    const br = {url, client: null, pending: null, subs: new Map(), lost: new Set()};
+    br.connect = () => {
+      if (br.client) return Promise.resolve(br);
+      if (br.pending) return br.pending;
+      br.pending = new Promise((resolve, reject) => {
+        let client;
+        try { client = new Paho.Client(url, 'gn' + rid()); } catch (e) { br.pending = null; reject(e); return; }
+        client.onMessageArrived = m => { const h = br.subs.get(m.destinationName); if (h) h(m.payloadString); };
+        client.onConnectionLost = () => {
+          br.client = null;
+          br.pending = null;
+          br.subs.clear();
+          const fns = [...br.lost];
+          br.lost.clear();
+          fns.forEach(fn => { try { fn(); } catch {} });
+        };
+        client.connect({
+          useSSL: url.startsWith('wss'), timeout: 6, keepAliveInterval: 20, cleanSession: true,
+          onSuccess: () => { br.client = client; br.pending = null; resolve(br); },
+          onFailure: e => { br.pending = null; reject(new Error((e && e.errorMessage) || 'relay connect failed')); }
+        });
+      });
+      return br.pending;
+    };
+    br.subscribe = (topic, handler) => new Promise((resolve, reject) => {
+      if (!br.client) { reject(new Error('not connected')); return; }
+      br.subs.set(topic, handler);
+      br.client.subscribe(topic, {qos: 0, timeout: 6, onSuccess: () => resolve(), onFailure: () => reject(new Error('subscribe failed'))});
+    });
+    br.unsubscribe = topic => { br.subs.delete(topic); try { br.client && br.client.unsubscribe(topic); } catch {} };
+    br.publish = (topic, text) => {
+      if (!br.client) return;
+      const msg = new Paho.Message(text);
+      msg.destinationName = topic;
+      msg.qos = 0;
+      try { br.client.send(msg); } catch {}
+    };
+    brokers.set(url, br);
+    return br;
+  }
+
+  // A conversation with one other page through a broker. Messages on the wire: {c: conn id, k: 'hi'|'ok'|'data'|'bye', m}.
+  function makeRelayConn(br, r, id, outTopic) {
+    const h = {};
+    let chain = Promise.resolve();
+    const conn = {
+      id, peer: 'relay-' + id, via: 'relay', open: false, _closed: false,
+      on(ev, fn) { (h[ev] = h[ev] || []).push(fn); return conn; },
+      emit(ev, x) { for (const fn of h[ev] || []) { try { fn(x); } catch (e) { console.error(e); } } },
+      post(k, m) { chain = chain.then(() => seal(r, {c: id, k, m})).then(t => br.publish(outTopic, t)).catch(() => {}); },
+      send(m) { if (conn.open) conn.post('data', m); },
+      close() { if (conn._closed) return; conn.post('bye'); conn.ended(); },
+      ended() { if (conn._closed) return; conn._closed = true; conn.open = false; if (conn.cleanup) conn.cleanup(); conn.emit('close'); }
+    };
+    return conn;
+  }
+  function inbox(br, r, topic, onMsg) {
+    let chain = Promise.resolve();
+    return br.subscribe(topic, text => { chain = chain.then(() => unseal(r, text)).then(msg => { if (msg && typeof msg.c === 'string') onMsg(msg); }); });
+  }
+
+  // Host side of the relay: listen on every broker at once.
+  function relayHost(game, getCode, onConn, onStatus) {
+    if (noRelay) return {stop() {}, restart() {}};
+    let stopped = false, gen = 0;
+    const conns = new Map(), live = new Set();
+    function attach(url, myGen) {
+      if (stopped || myGen !== gen) return;
+      const br = broker(url);
+      let r;
+      room(game, getCode()).then(x => { r = x; return br.connect(); })
+        .then(() => inbox(br, r, r.topic + '/h', msg => {
+          if (myGen !== gen) return;
+          let c = conns.get(msg.c);
+          if (msg.k === 'hi') {
+            if (c) { c.post('ok'); return; }
+            c = makeRelayConn(br, r, msg.c, r.topic + '/g/' + msg.c);
+            c.url = url;
+            c.cleanup = () => conns.delete(msg.c);
+            conns.set(msg.c, c);
+            c.open = true;
+            c.post('ok');
+            track(c);
+            onConn(c);
+          } else if (c && msg.k === 'data') c.emit('data', msg.m);
+          else if (c && msg.k === 'bye') c.ended();
+        }))
+        .then(() => {
+          live.add(url);
+          onStatus(live.size > 0);
+          br.lost.add(() => {
+            live.delete(url);
+            onStatus(live.size > 0);
+            for (const c of [...conns.values()]) if (c.url === url) c.ended();
+            setTimeout(() => attach(url, myGen), 5000);
+          });
+        })
+        .catch(() => { live.delete(url); onStatus(live.size > 0); setTimeout(() => attach(url, myGen), 15000); });
+    }
+    function start() { gen++; for (const url of BROKERS) attach(url, gen); }
+    start();
+    return {
+      stop() { stopped = true; for (const c of [...conns.values()]) c.close(); },
+      restart() { for (const c of [...conns.values()]) c.close(); start(); }
+    };
+  }
+  // Guest side of the relay: try each broker until the host answers.
+  async function relayJoin(game, code, waitMs = 7000) {
+    if (noRelay) return null;
+    const r = await room(game, code);
+    for (const url of BROKERS) {
+      const br = broker(url);
+      try { await br.connect(); } catch { continue; }
+      const id = rid();
+      const c = makeRelayConn(br, r, id, r.topic + '/h');
+      const mine = r.topic + '/g/' + id;
+      const ok = await new Promise(resolve => {
+        const t = setTimeout(() => resolve(false), waitMs);
+        inbox(br, r, mine, msg => {
+          if (msg.c !== id) return;
+          if (msg.k === 'ok') { clearTimeout(t); resolve(true); }
+          else if (msg.k === 'data') c.emit('data', msg.m);
+          else if (msg.k === 'bye') c.ended();
+        }).then(() => c.post('hi'), () => { clearTimeout(t); resolve(false); });
+      });
+      if (ok && !c._closed) {
+        c.open = true;
+        c.cleanup = () => br.unsubscribe(mine);
+        br.lost.add(() => c.ended());
+        return c;
+      }
+      br.unsubscribe(mine);
+    }
+    return null;
+  }
+
+  // ===== host: open a table under a 4-letter code (kept per game in localStorage) =====
+  function host({game, prefix, codeKey, onConn, onState}) {
+    let code = store.get(codeKey, null) || newCode();
+    store.set(codeKey, code);
+    let peer = null, tries = 0, timer = 0, p2p = false, relayOn = false, note = '';
+    const report = () => onState({code, p2p, relay: relayOn, ready: p2p || relayOn, note});
+    const relay = relayHost(game, () => code, c => onConn(c), on => { relayOn = on; report(); });
+    function open() {
+      if (typeof Peer !== 'function') { note = 'The connection code didn’t load. Reload the page.'; report(); return; }
+      const p = peer = new Peer(prefix + code, peerOptions());
+      p.on('open', () => { if (peer !== p) return; tries = 0; p2p = true; note = ''; report(); });
+      p.on('connection', c => c.on('open', () => { c.via = 'p2p'; track(c); onConn(c); }));
+      p.on('disconnected', () => {
+        if (peer !== p || p.destroyed) return;
+        p2p = false;
+        report();
+        setTimeout(() => { if (peer === p && !p.destroyed && p.disconnected) p.reconnect(); }, 2000);
+      });
+      p.on('error', err => {
+        if (peer !== p || err.type === 'peer-unavailable') return;
+        p.destroy();
+        peer = null;
+        p2p = false;
+        if (err.type === 'unavailable-id') {
+          // The code is still held (often by this same table a moment ago). Retry it, then pick a new one.
+          if (++tries > 4) { code = newCode(); store.set(codeKey, code); tries = 0; relay.restart(); }
+        } else note = 'Can’t reach the main connection server. Retrying…';
+        report();
+        clearTimeout(timer);
+        timer = setTimeout(open, 3000);
+      });
+    }
+    open();
+    report();
+    return {
+      get code() { return code; },
+      wake() {
+        if (!peer || peer.destroyed) { clearTimeout(timer); open(); }
+        else if (peer.disconnected) peer.reconnect();
+      }
+    };
+  }
+
+  // ===== guest: reach a table by code. Direct first; the relay joins the race after a few seconds or as soon as direct fails =====
+  function join({game, prefix, code, onConn, onState}) {
+    let alive = true, peer = null, current = null, timer = 0, attempt = 0;
+    function start() {
+      if (!alive) return;
+      const my = ++attempt;
+      onState('connecting', '');
+      let done = false, relayStarted = false, relayFailed = noRelay, p2pFailed = forceRelay, noHost = false;
+      const win = conn => {
+        if (done || my !== attempt || !alive) { try { conn.close(); } catch {} return; }
+        done = true;
+        clearTimeout(t1);
+        clearTimeout(t2);
+        current = conn;
+        if (conn.via !== 'p2p' && peer) { try { peer.destroy(); } catch {} peer = null; }
+        track(conn);
+        conn.on('close', () => { if (current !== conn) return; current = null; onState('lost', ''); retry(); });
+        onConn(conn);
+      };
+      const giveUp = () => {
+        if (done || my !== attempt) return;
+        if (!(p2pFailed && relayFailed)) return;
+        clearTimeout(t2);
+        onState(noHost ? 'nohost' : 'lost', '');
+        retry();
+      };
+      const startRelay = () => {
+        if (relayStarted || noRelay) return;
+        relayStarted = true;
+        relayJoin(game, code).then(c => { if (c) win(c); else { relayFailed = true; giveUp(); } }, () => { relayFailed = true; giveUp(); });
+      };
+      if (!forceRelay && typeof Peer === 'function') {
+        if (peer) { try { peer.destroy(); } catch {} }
+        const p = peer = new Peer(peerOptions());
+        p.on('open', () => {
+          if (peer !== p || done) return;
+          const c = p.connect(prefix + code, {reliable: true});
+          c.on('open', () => { c.via = 'p2p'; win(c); });
+          c.on('error', () => {});
+        });
+        p.on('error', err => {
+          if (peer !== p || done) return;
+          if (err.type === 'peer-unavailable') noHost = true;
+          p2pFailed = true;
+          startRelay();
+          giveUp();
+        });
+      } else p2pFailed = true;
+      const t1 = setTimeout(startRelay, p2pFailed ? 0 : 5000);
+      const t2 = setTimeout(() => { if (!done && my === attempt) { onState(noHost ? 'nohost' : 'lost', ''); retry(); } }, 25000);
+    }
+    function retry() { clearTimeout(timer); if (alive) timer = setTimeout(start, 4000); }
+    start();
+    return {
+      get conn() { return current; },
+      stop() { alive = false; clearTimeout(timer); try { peer && peer.destroy(); } catch {} try { current && current.close(); } catch {} },
+      wake() { if (!current && alive) { clearTimeout(timer); start(); } }
+    };
+  }
+
+  // ===== probe: is a table open under this code? (used by the Game Night hub; never takes anyone's seat) =====
+  function probe({game, prefix, code}) {
+    return new Promise(resolve => {
+      let settled = false, peer = null;
+      const finish = (res, conn) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(t);
+        try { conn && conn.close(); } catch {}
+        setTimeout(() => { try { peer && peer.destroy(); } catch {} }, 300);
+        resolve(res);
+      };
+      const ask = conn => {
+        conn.on('data', msg => { if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via}, conn); });
+        conn.send({type: 'probe'});
+      };
+      const viaRelay = () => relayJoin(game, code, 5000).then(c => { if (c) ask(c); else finish({open: false}); }, () => finish({open: false}));
+      const t = setTimeout(() => finish({open: false}), 14000);
+      if (forceRelay || typeof Peer !== 'function') { viaRelay(); return; }
+      peer = new Peer(peerOptions());
+      peer.on('open', () => {
+        const c = peer.connect(prefix + code, {reliable: true});
+        c.on('open', () => { c.via = 'p2p'; ask(c); });
+      });
+      peer.on('error', err => { if (!settled) viaRelay(); });
+    });
+  }
+
+  return {host, join, probe, newCode};
+})();
 </script>
 
 <script id="rules">
@@ -326,14 +942,13 @@ const CK = (() => {
 
 <script>
 const ROLE = 'player';
+const GAME = 'checkers';
 const PREFIX = 'kingme-v1-';
+const PROTO = 2;
 const SAVE_KEY = `kingme:${ROLE}:v1`;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
-const store = {
-  get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
-  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
-};
+const store = Kit.store;
 const rid = () => Math.random().toString(36).slice(2, 10);
 const otherColor = c => (c === 'b' ? 'r' : 'b');
 const otherSeat = s => (s === 'A' ? 'B' : 'A');
@@ -342,14 +957,6 @@ const colorOfSide = n => (n === 1 ? 'b' : 'r');
 const COLOR_NAME = {b: 'Black', r: 'Red'};
 const TIME_CONTROLS = {'0': null, '3+2': {base: 180, inc: 2}, '5+3': {base: 300, inc: 3}, '10+5': {base: 600, inc: 5}};
 const CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18l-1.6-10-4.6 4.2L12 5.5 9.2 12.2 4.6 8z" fill="#f1bb2a" stroke="#7a5600" stroke-width="1" stroke-linejoin="round"/></svg>';
-
-// Test hook: ?peerserver=host:port points both pages at a self-hosted PeerJS server instead of the public one.
-function peerOptions() {
-  const s = new URLSearchParams(location.search).get('peerserver');
-  if (!s) return {debug: 0};
-  const [host, port] = s.split(':');
-  return {debug: 0, host, port: Number(port) || 9000, path: '/', secure: false};
-}
 const cleanName = n => String(n || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, 20);
 
 // <game>
@@ -453,11 +1060,12 @@ const App = {
   solo: null,
   host: null,
   hostName: '',
-  guest: {sid: rid(), n: 0, waitN: 0, msg: null, pending: null, view: null, hostName: 'Host', myName: ''},
-  ui: {sel: null, path: [], boardKey: '', animKey: '', bannerKey: '', overKey: '', overDismissed: null, resignArmed: 0, movesKey: ''}
+  guest: {sid: rid(), n: 0, waitN: 0, msg: null, pending: null, view: null, hostName: 'Host', myName: '', old: false},
+  ui: {sel: null, path: [], boardKey: '', animKey: '', bannerKey: '', overKey: '', overDismissed: null, resignArmed: 0, movesKey: '',
+    myTurnKey: '', preview: null, reviewTab: 'me', endSound: null}
 };
-// Connection to the other player. state: off · starting · ready · connecting · connected · nohost · lost · error
-const Net = {peer: null, conn: null, state: 'off', code: '', note: '', timer: 0, tries: 0, heard: 0};
+// Connection state. host: Net.info = {code, ready, p2p, relay, note}; guest: Net.state 'off' · 'connecting' · 'connected' · 'nohost' · 'lost'
+const Net = {state: 'off', note: '', code: '', link: null, conn: null, info: null};
 
 function oppName(v) {
   if (v && v.free) return COLOR_NAME[otherColor(v.me)];
@@ -470,12 +1078,12 @@ function save() {
   store.set(SAVE_KEY, {
     settings: App.settings,
     solo: App.solo,
-    host: ROLE === 'host' ? {s: H.s, score: H.score, nextColor: H.nextColor, guestName: H.guestName, lastN: H.lastN, scored: H.scored} : null,
+    host: ROLE === 'host' ? {s: H.s, score: H.score, nextColor: H.nextColor, guestName: H.guestName, guestDev: H.guestDev, lastN: H.lastN, scored: H.scored} : null,
     mode: App.mode === 'guest' ? 'solo' : App.mode
   });
 }
 function soloIsFree() { return ROLE !== 'host' || Role.engineFailed(); }
-function currentView() {
+function baseView() {
   if (App.mode === 'guest') {
     const G = App.guest;
     if (!G.view) return null;
@@ -495,12 +1103,19 @@ function currentView() {
   v.free = App.mode === 'solo' && soloIsFree();
   return v;
 }
+// While a reviewed move is on show, the board shows the position before it.
+function currentView() {
+  const v = baseView();
+  const p = App.ui.preview;
+  if (!v || !p) return v;
+  return {...v, board: p.item.board, turn: p.item.color, last: null, offer: null, clock: null, previewing: true};
+}
 function interactive() {
   if (App.mode !== 'guest') return true;
   return Net.state === 'connected' && !App.guest.waitN;
 }
 function canMove(v) {
-  if (!v || v.result || !interactive()) return false;
+  if (!v || v.result || v.previewing || !interactive()) return false;
   return v.free || v.turn === v.me;
 }
 function tally() {
@@ -511,6 +1126,7 @@ function tally() {
     const w = s.result.winner;
     if (w == null) { ctx.score.A += 0.5; ctx.score.B += 0.5; }
     else ctx.score[w === s.colorA ? 'A' : 'B'] += 1;
+    if (ctx === App.host) Role.recordGame(s);
   }
 }
 function afterChange() {
@@ -540,12 +1156,12 @@ function clearSelection() { App.ui.sel = null; App.ui.path = []; }
 function doAction(a) {
   if (App.mode === 'guest') {
     if (!App.guest.view || !interactive()) return;
-    Role.send(a);
+    Role.send({type: 'act', a});
     return;
   }
   const ctx = App.mode === 'host' ? App.host : App.solo;
   if (!ctx.s) return;
-  const v = currentView();
+  const v = baseView();
   // On a practice board you move both sides, so the move belongs to whoever is to play.
   const seat = v.free && a.t === 'move' ? (colorOf(ctx.s, 'A') === v.turn ? 'A' : 'B') : 'A';
   const r = actGame(ctx.s, seat, a);
@@ -556,15 +1172,10 @@ function cleanAct(a) {
   const path = Array.isArray(a.path) && a.path.length >= 2 && a.path.length <= 12 && a.path.every(x => Number.isInteger(x) && x >= 0 && x < 64) ? a.path : null;
   return {t: ['move', 'resign', 'draw', 'decline'].includes(a.t) ? a.t : null, path};
 }
-
-// ---------- phones: keep the link alive, keep the screen on ----------
-setInterval(() => {
-  const c = Net.conn;
-  if (!c) return;
-  if (Date.now() - Net.heard > 14000) { try { c.close(); } catch {} return; }
-  if (c.open) { try { c.send({type: 'ping'}); } catch {} }
-}, 4000);
-function heardFrom(conn) { if (Net.conn === conn) Net.heard = Date.now(); }
+function copyText(value, done) {
+  try { navigator.clipboard.writeText(value).then(() => toast(done), () => toast(value)); }
+  catch { toast(value); }
+}
 let wakeLock = null;
 async function keepAwake() {
   try { if (!wakeLock && navigator.wakeLock && document.visibilityState === 'visible') { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch {}
@@ -575,14 +1186,66 @@ document.addEventListener('visibilitychange', () => {
   keepAwake();
   Role.wake();
 });
-function copyText(value, done) {
-  try { navigator.clipboard.writeText(value).then(() => toast(done), () => toast(value)); }
-  catch { toast(value); }
+
+// ---------- game review (shared display; the host's engine does the analysis) ----------
+const KIND_WORD = {blunder: 'Blunder', mistake: 'Mistake', inaccuracy: 'Inaccuracy'};
+function reviewSummary(items) {
+  const n = k => items.filter(x => x.kind === k).length;
+  const parts = [['blunder', 'blunders'], ['mistake', 'mistakes'], ['inaccuracy', 'inaccuracies']]
+    .map(([k, plural]) => n(k) ? `<b>${n(k)}</b> ${n(k) === 1 ? k : plural}` : '').filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'No real mistakes. Nicely played.';
 }
-function noLibrary() {
-  Net.state = 'error';
-  Net.note = 'The connection code didn’t load. Reload the page.';
+function openReview(tab) {
+  const sets = Role.reviewSets();
+  if (!sets.length) return;
+  if (tab) App.ui.reviewTab = tab;
+  if (!sets.some(x => x.key === App.ui.reviewTab)) App.ui.reviewTab = sets[0].key;
+  const set = sets.find(x => x.key === App.ui.reviewTab);
+  $('review-title').textContent = set.title;
+  $('review-tabs').innerHTML = sets.length > 1
+    ? `<div class="seg wide" role="tablist">${sets.map(x => `<button type="button" data-tab="${x.key}" aria-pressed="${x.key === set.key}">${esc(x.label)}</button>`).join('')}</div>` : '';
+  $('review-sum').innerHTML = reviewSummary(set.items);
+  $('review-list').innerHTML = set.items.map((it, i) => {
+    const better = it.bestSan ? ` Better was <b>${esc(it.bestSan)}</b>.` : '';
+    return `<li><button type="button" class="review-item" data-i="${i}"><span class="tag ${it.kind}">${KIND_WORD[it.kind]}</span><span class="txt">Move ${it.num}: <b>${esc(it.san)}</b>.${better}</span></button></li>`;
+  }).join('');
+  $('review-note').textContent = set.items.length ? 'Tap a move to see it on the board.' : '';
+  App.ui.reviewSet = set;
+  $('over').hidden = true;
+  $('review').hidden = false;
+}
+function showPreview(item) {
+  const v = baseView();
+  App.ui.preview = {item};
+  if (v) App.ui.overDismissed = v.gid;
+  clearSelection();
+  $('review').hidden = true;
+  const who = App.ui.reviewSet && App.ui.reviewSet.key === 'them' ? oppName(v) : 'You';
+  $('preview-text').innerHTML = `Move ${item.num}: ${esc(who)} played <b>${esc(item.san)}</b> (${KIND_WORD[item.kind].toLowerCase()}, red arrow).` +
+    (item.bestSan ? ` Better was <b>${esc(item.bestSan)}</b> (gold arrow).` : '');
+  $('preview-bar').hidden = false;
   render();
+}
+function endPreview() {
+  App.ui.preview = null;
+  $('preview-bar').hidden = true;
+  render();
+}
+$('review-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) openReview(b.dataset.tab); });
+$('review-list').addEventListener('click', e => {
+  const b = e.target.closest('[data-i]');
+  if (b && App.ui.reviewSet) showPreview(App.ui.reviewSet.items[Number(b.dataset.i)]);
+});
+$('review-close').addEventListener('click', () => { $('review').hidden = true; App.ui.overKey = ''; render(); });
+$('preview-back').addEventListener('click', () => { endPreview(); openReview(); });
+$('preview-done').addEventListener('click', endPreview);
+const okPath = p => Array.isArray(p) && p.length >= 2 && p.length <= 12 && p.every(x => Number.isInteger(x) && x >= 0 && x < 64);
+function cleanReviewItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.slice(0, 120).filter(x => x && typeof x.board === 'string' && /^[.bBrR]{64}$/.test(x.board) && KIND_WORD[x.kind]).map(x => ({
+    num: Number(x.num) || 0, color: x.color === 'r' ? 'r' : 'b', san: String(x.san || '').slice(0, 40), bestSan: String(x.bestSan || '').slice(0, 40),
+    played: okPath(x.played) ? x.played : null, best: okPath(x.best) ? x.best : null, board: x.board, kind: x.kind
+  }));
 }
 
 
@@ -590,83 +1253,50 @@ function noLibrary() {
 function playerJoin(code) {
   code = String(code || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
   if (code.length !== 4) { toast('Table codes are 4 letters.'); return; }
-  if (typeof Peer !== 'function') return noLibrary();
+  if (Net.link) Net.link.stop();
   Net.code = code;
   store.set('kingme:join', {code, name: App.guest.myName});
-  clearTimeout(Net.timer);
-  if (Net.peer) { try { Net.peer.destroy(); } catch {} }
   Net.conn = null;
-  Net.state = 'connecting';
-  Net.note = '';
-  render();
-  const peer = new Peer(peerOptions());
-  Net.peer = peer;
-  const giveUp = setTimeout(() => {
-    if (Net.peer !== peer || Net.state === 'connected') return;
-    Net.state = 'lost';
-    Net.note = 'Couldn’t reach the table. Trying again…';
-    render();
-    rejoinSoon();
-  }, 15000);
-  peer.on('open', () => {
-    if (Net.peer !== peer) return;
-    const conn = peer.connect(PREFIX + code, {reliable: true});
-    conn.on('open', () => {
-      if (Net.peer !== peer) return;
-      clearTimeout(giveUp);
+  Net.link = Link.join({
+    game: GAME, prefix: PREFIX, code,
+    onConn: conn => {
       Net.conn = conn;
-      Net.heard = Date.now();
       Net.state = 'connected';
       Net.note = '';
-      conn.send({type: 'hello', name: App.guest.myName || 'Friend', sid: App.guest.sid});
+      conn.on('data', playerOnData);
+      conn.send({type: 'hello', proto: PROTO, name: App.guest.myName || 'Friend', sid: App.guest.sid, dev: Kit.deviceId()});
       if (App.guest.waitN && App.guest.msg) conn.send(App.guest.msg);
       render();
-    });
-    conn.on('data', msg => { heardFrom(conn); if (Net.conn === conn) playerOnData(msg); });
-    conn.on('close', () => {
-      if (Net.conn !== conn) return;
+    },
+    onState: state => {
       Net.conn = null;
-      Net.state = 'lost';
-      Net.note = `Lost the connection to ${App.guest.hostName}. Reconnecting…`;
+      Net.state = state;
+      Net.note = state === 'nohost' ? `No table is open with code ${code} right now. Checking again every few seconds.`
+        : state === 'lost' ? (App.mode === 'guest' ? `Lost the connection to ${App.guest.hostName}. Reconnecting…` : 'Couldn’t reach the table. Trying again…') : '';
       render();
-      rejoinSoon();
-    });
-    conn.on('error', () => {});
-  });
-  peer.on('disconnected', () => {
-    if (Net.peer === peer && !peer.destroyed && Net.state !== 'connected') rejoinSoon();
-  });
-  peer.on('error', err => {
-    if (Net.peer !== peer) return;
-    clearTimeout(giveUp);
-    if (err.type === 'peer-unavailable') {
-      Net.state = 'nohost';
-      Net.note = `No table is open with code ${code} right now. Checking again every few seconds.`;
-    } else if (Net.state !== 'connected') {
-      Net.state = 'lost';
-      Net.note = 'Can’t reach the connection server. Trying again…';
     }
-    render();
-    if (Net.state !== 'connected') rejoinSoon();
   });
-}
-function rejoinSoon() {
-  clearTimeout(Net.timer);
-  Net.timer = setTimeout(() => { if (Net.code && Net.state !== 'connected') playerJoin(Net.code); }, 4000);
+  render();
 }
 function validView(g) {
   return !!g && typeof g === 'object' && typeof g.board === 'string' && /^[.bBrR]{64}$/.test(g.board) &&
     ['b', 'r'].includes(g.turn) && ['b', 'r'].includes(g.me) && Array.isArray(g.hist);
 }
 function playerOnData(msg) {
-  if (!msg || typeof msg !== 'object' || msg.type !== 'state') return;
+  if (!msg || typeof msg !== 'object') return;
   const G = App.guest;
+  if (msg.type === 'react') { if (Kit.validEmoji(msg.e)) Kit.showReaction(msg.e, G.hostName); return; }
+  if (msg.type === 'full') { Net.note = 'That table already has a player.'; toast(Net.note); return; }
+  if (msg.type !== 'state') return;
+  G.old = msg.proto !== PROTO;
   G.hostName = cleanName(msg.host) || 'Host';
   const g = msg.g;
   if (validView(g)) {
     g.at = Date.now();
     g.hist = g.hist.map(x => String(x).slice(0, 40));
-    g.last = Array.isArray(g.last) && g.last.every(x => Number.isInteger(x) && x >= 0 && x < 64) ? g.last : null;
+    g.last = okPath(g.last) ? g.last : null;
+    const r = g.review;
+    g.review = r && typeof r === 'object' ? (r.pending ? {pending: true, progress: Number(r.progress) || 0} : {items: cleanReviewItems(r.items)}) : null;
     G.view = g;
     const ack = g.ack;
     if (G.waitN && ack && ack.sid === G.sid && ack.n >= G.waitN) {
@@ -682,6 +1312,15 @@ function playerOnData(msg) {
     G.waitN = 0;
     G.pending = null;
   }
+  render();
+}
+function askRematch() {
+  if (Net.state !== 'connected') return;
+  Role.send({type: 'rematch'});
+  if (App.guest.view) App.guest.view.asked = true;
+  toast(`Asked ${App.guest.hostName} for a rematch.`);
+  App.ui.overKey = '';
+  App.ui.bannerKey = '';
   render();
 }
 
@@ -711,15 +1350,19 @@ const Role = {
   engineFailed() { return true; },
   after() {},
   publish() {},
-  send(a) {
+  send(msg) {
     const G = App.guest;
-    G.n += 1;
-    G.waitN = G.n;
-    G.pending = a.t === 'move' ? a : null;
-    G.msg = {type: 'act', a, n: G.n, g: G.view.gid, sid: G.sid};
-    try { Net.conn.send(G.msg); } catch {}
+    if (msg.type === 'act') {
+      G.n += 1;
+      G.waitN = G.n;
+      G.pending = msg.a.t === 'move' ? msg.a : null;
+      G.msg = {...msg, n: G.n, g: G.view.gid, sid: G.sid};
+      msg = G.msg;
+    }
+    try { Net.conn.send(msg); } catch {}
     render();
   },
+  recordGame() {},
   pill() {
     const host = App.guest.hostName || 'Host';
     switch (Net.state) {
@@ -727,21 +1370,39 @@ const Role = {
       case 'connecting': return {on: false, text: 'Connecting…'};
       case 'nohost': return {on: false, text: 'Waiting for the table'};
       case 'lost': return {on: false, text: 'Reconnecting…'};
-      case 'error': return {on: false, text: 'Connection problem'};
       default: return {on: false, text: 'Not at a table'};
     }
   },
   banner(v) {
-    const host = App.guest.hostName || 'Host';
+    const G = App.guest;
+    const host = G.hostName || 'Host';
+    if (Net.state === 'connected' && G.old) return {text: `${host}’s table is running an older version. Ask them to reload their table page.`};
     if (App.mode === 'guest') {
       if (Net.state !== 'connected') return {text: Net.note || `Lost the connection to ${host}. Reconnecting…`, actions: [['Practice board', backToSolo]]};
-      if (v && v.result) return {text: `Game over. ${host} starts the rematch.`};
+      if (v && v.result && !App.ui.preview) {
+        if (v.asked) return {text: `You asked for a rematch. ${host} starts it.`};
+        return {text: `Game over. ${host} starts the rematch.`, actions: [['Ask for a rematch', askRematch, true]]};
+      }
       return null;
     }
     if (Net.state === 'connected') return {text: `You’re at ${host}’s table. They’ll start the game.`};
     return null;
   },
-  rematch() {},
+  overActions(add, v) {
+    if (App.mode !== 'guest') return;
+    if (Net.state === 'connected' && !v.asked) add('Ask for a rematch', askRematch, true);
+    const r = v.review;
+    if (r && r.items) add('Your game review', () => openReview('me'));
+    else if (r && r.pending) add(`Reviewing… ${r.progress}%`, () => {}, false, true);
+  },
+  overNote() { return App.mode === 'guest' ? `${App.guest.hostName} starts the rematch.` : ''; },
+  reviewSets() {
+    const v = App.guest.view;
+    if (App.mode !== 'guest' || !v || !v.review || !v.review.items) return [];
+    return [{key: 'me', label: 'Your moves', title: 'Your moves', items: v.review.items}];
+  },
+  hasPeople() { return Net.state === 'connected'; },
+  react(e) { Kit.showReaction(e, 'You'); Role.send({type: 'react', e}); },
   marks() { return {arrows: [], hang: [], hint: null}; },
   extra() {
     const joinVisible = App.mode !== 'guest' && Net.state !== 'connected';
@@ -751,9 +1412,7 @@ const Role = {
     btn.textContent = Net.state === 'connecting' ? 'Joining…' : Net.state === 'nohost' || Net.state === 'lost' ? 'Try again' : 'Join';
     $('join-note').textContent = Net.state === 'connecting' ? 'Connecting…' : Net.note || 'Until then, the board below is free to practice on.';
   },
-  wake() {
-    if (Net.code && Net.state !== 'connected' && Net.state !== 'connecting') { clearTimeout(Net.timer); playerJoin(Net.code); }
-  },
+  wake() { Net.link && Net.link.wake(); },
   escape() { return false; },
   closeAll() {}
 };
@@ -770,6 +1429,14 @@ function render() {
   renderControls(v);
   renderMoves(v);
   renderOver(v);
+  $('react-bar').hidden = !Role.hasPeople();
+  turnAlerts(v);
+}
+function turnAlerts(v) {
+  const online = App.mode === 'host' || App.mode === 'guest';
+  const mine = !!v && online && !v.result && !v.previewing && v.turn === v.me && interactive();
+  if (mine && !App.ui.myTurnKey) Kit.alertTurn();
+  App.ui.myTurnKey = mine ? v.gid : '';
 }
 const fmtScore = x => (Math.floor(x) || (x % 1 ? '' : '0')) + (x % 1 ? '½' : '');
 function renderTop(v) {
@@ -848,20 +1515,28 @@ function renderClocks(v) {
 // Black starts at the top of the board data; whoever you are sits at the bottom of the screen.
 const flipFor = me => me === 'b';
 function displayPos(flip, sq) { const r = sq >> 3, c = sq & 7; return flip ? {dr: 7 - r, dc: 7 - c} : {dr: r, dc: c}; }
+function pathArrows(path, kind) {
+  const out = [];
+  for (let i = 1; i < path.length; i++) out.push({from: path[i - 1], to: path[i], kind, first: i === 1, end: i === path.length - 1});
+  return out;
+}
 function arrowSVG(flip, arrows) {
   let out = '';
-  arrows.forEach((a, i) => {
+  for (const a of arrows) {
     const p = displayPos(flip, a.from), q = displayPos(flip, a.to);
     const x1 = p.dc + 0.5, y1 = p.dr + 0.5, x2 = q.dc + 0.5, y2 = q.dr + 0.5;
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1, ux = dx / len, uy = dy / len;
-    const last = i === arrows.length - 1;
     const tipX = x2 - ux * 0.12, tipY = y2 - uy * 0.12, baseX = tipX - ux * 0.38, baseY = tipY - uy * 0.38;
     const px = -uy * 0.24, py = ux * 0.24;
-    const endX = last ? baseX : x2, endY = last ? baseY : y2;
-    out += `<g class="${a.kind}"><line x1="${(x1 + ux * (i ? 0 : 0.2)).toFixed(3)}" y1="${(y1 + uy * (i ? 0 : 0.2)).toFixed(3)}" x2="${endX.toFixed(3)}" y2="${endY.toFixed(3)}"/>` +
-      (last ? `<polygon points="${tipX.toFixed(3)},${tipY.toFixed(3)} ${(baseX + px).toFixed(3)},${(baseY + py).toFixed(3)} ${(baseX - px).toFixed(3)},${(baseY - py).toFixed(3)}"/>` : '') + '</g>';
-  });
+    const endX = a.end ? baseX : x2, endY = a.end ? baseY : y2;
+    out += `<g class="${a.kind}"><line x1="${(x1 + ux * (a.first ? 0.2 : 0)).toFixed(3)}" y1="${(y1 + uy * (a.first ? 0.2 : 0)).toFixed(3)}" x2="${endX.toFixed(3)}" y2="${endY.toFixed(3)}"/>` +
+      (a.end ? `<polygon points="${tipX.toFixed(3)},${tipY.toFixed(3)} ${(baseX + px).toFixed(3)},${(baseY + py).toFixed(3)} ${(baseX - px).toFixed(3)},${(baseY - py).toFixed(3)}"/>` : '') + '</g>';
+  }
   return out ? `<svg class="arrows" viewBox="0 0 8 8" aria-hidden="true">${out}</svg>` : '';
+}
+function previewMarks() {
+  const it = App.ui.preview.item;
+  return {arrows: [...(it.played ? pathArrows(it.played, 'threat') : []), ...(it.best ? pathArrows(it.best, 'best') : [])], hang: [], hint: null};
 }
 function selectionTargets(v, b) {
   if (App.ui.sel == null || !v) return {targets: [], trail: []};
@@ -875,7 +1550,7 @@ function renderBoard(v) {
   const me = v ? v.me : 'b';
   const flip = flipFor(me);
   const last = v ? v.last : null;
-  const marks = Role.marks(v, b);
+  const marks = v && v.previewing ? previewMarks() : Role.marks(v, b);
   const {targets, trail} = selectionTargets(v, b);
   const legal = v && !v.result ? CK.moves(b, sideOf(v.turn)) : [];
   const mustJump = canMove(v) && App.ui.sel == null && legal.length && legal[0].caps.length ? new Set(legal.map(m => m.path[0])) : new Set();
@@ -883,8 +1558,9 @@ function renderBoard(v) {
   if (key === App.ui.boardKey) return;
   App.ui.boardKey = key;
   const animKey = (v ? v.gid : '') + (last ? last.join() : '') + boardStr;
-  const animate = last && App.ui.animKey && App.ui.animKey !== animKey;
-  App.ui.animKey = animKey;
+  const animate = last && App.ui.animKey && App.ui.animKey !== animKey && !(v && v.previewing);
+  if (!(v && v.previewing)) App.ui.animKey = animKey;
+  if (animate && v.hist.length) Kit.play(v.hist[v.hist.length - 1].includes('x') ? 'capture' : 'move');
   const hang = new Set(marks.hang), lastSet = new Set(last ? [last[0], last[last.length - 1]] : []);
   const trailSet = new Set(trail), targetSet = new Set(targets);
   let html = '';
@@ -940,6 +1616,7 @@ function renderStatus(v) {
   const el = $('status');
   let text = '', wait = false;
   if (!v) text = '';
+  else if (v.previewing) { text = 'Reviewing a move'; wait = true; }
   else if (v.result) text = resultText(v);
   else if (App.mode === 'guest' && App.guest.waitN) { text = 'Sending your move…'; wait = true; }
   else if (App.mode === 'guest' && Net.state !== 'connected') { text = 'Reconnecting…'; wait = true; }
@@ -959,7 +1636,7 @@ function renderStatus(v) {
 }
 function renderControls(v) {
   const vsPerson = !!v && !v.free && (App.mode === 'host' || App.mode === 'guest');
-  const live = !!v && !v.result;
+  const live = !!v && !v.result && !v.previewing;
   const draw = $('btn-draw');
   draw.hidden = !(vsPerson && live);
   draw.disabled = !interactive() || !!(v && v.offer === 'me');
@@ -988,39 +1665,41 @@ function renderMoves(v) {
   el.scrollLeft = el.scrollWidth;
 }
 function renderOver(v) {
-  const show = !!(v && v.result && App.ui.overDismissed !== v.gid);
+  const show = !!(v && v.result && !v.previewing && App.ui.overDismissed !== v.gid && $('review').hidden);
   const el = $('over');
   if (!show) { el.hidden = true; App.ui.overKey = ''; return; }
   const opp = oppName(v);
-  const key = `${v.gid}|${App.mode}|${!!(App.host && App.host.here)}|${opp}`;
+  const note = Role.overNote();
+  const rv = v.review ? JSON.stringify(v.review).length : 0;
+  const key = `${v.gid}|${App.mode}|${Role.hasPeople()}|${opp}|${note}|${!!v.asked}|${rv}|${Role.reviewSets().length}|${ROLE === 'host' ? JSON.stringify([Review.state, Review.progress]) : ''}`;
   el.hidden = false;
   if (key === App.ui.overKey) return;
   App.ui.overKey = key;
+  if (App.ui.endSound !== v.gid) { App.ui.endSound = v.gid; Kit.play(v.result.win === 'me' ? 'win' : v.result.win ? 'lose' : 'alert'); }
   $('over-title').textContent = resultText(v);
   const sc = v.sc || [0, 0];
   $('over-score').textContent = v.free ? '' : `Score: You ${fmtScore(sc[0])}, ${opp} ${fmtScore(sc[1])}`;
   $('over-score').hidden = !!v.free;
-  const note = $('over-note');
-  note.hidden = App.mode !== 'guest';
-  note.textContent = `${opp} starts the rematch.`;
+  const noteEl = $('over-note');
+  noteEl.hidden = !note;
+  noteEl.textContent = note;
   const box = $('over-actions');
   box.innerHTML = '';
-  const add = (label, fn, primary) => {
+  const add = (label, fn, primary, disabled) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'btn' + (primary ? ' primary' : '');
     b.textContent = label;
+    b.disabled = !!disabled;
     b.addEventListener('click', fn);
     box.append(b);
   };
   if (App.mode === 'solo') add('New game', dealSolo, true);
-  else if (App.mode === 'host') Role.rematch(add);
+  Role.overActions(add, v);
   add('See the board', () => { App.ui.overDismissed = v.gid; render(); });
-  const first = box.querySelector('button');
-  if (first) first.focus();
 }
 
-function closeOverlays() { Role.closeAll(); }
+function closeOverlays() { $('review').hidden = true; Role.closeAll(); }
 let toastTimer = 0;
 function toast(msg) {
   const t = $('toast');
@@ -1036,7 +1715,7 @@ $('board').addEventListener('click', e => {
   if (!btn) return;
   const sq = Number(btn.dataset.sq);
   const v = currentView();
-  if (!v || v.result) return;
+  if (!v || v.result || v.previewing) return;
   if (!canMove(v)) {
     if (!interactive()) return;
     toast(`It’s ${oppName(v)}’s move.`);
@@ -1073,8 +1752,12 @@ $('btn-resign').addEventListener('click', () => {
   setTimeout(render, 3050);
 });
 $('btn-new').addEventListener('click', dealSolo);
+Kit.muteButton($('mute'));
+Kit.reactionBar($('react-bar'), e => Role.react(e));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (!$('review').hidden) { $('review').hidden = true; render(); return; }
+  if (App.ui.preview) { endPreview(); return; }
   if (Role.escape()) return;
   if (App.ui.sel != null) { clearSelection(); render(); }
 });
@@ -1094,14 +1777,15 @@ setInterval(() => {
   const h = saved && saved.host;
   App.host = {
     s: h && h.s ? h.s : null, score: (h && h.score) || {A: 0, B: 0}, nextColor: (h && h.nextColor) || 'b',
-    guestName: (h && h.guestName) || '', lastN: (h && h.lastN) || {}, scored: (h && h.scored) || null,
-    here: false, ack: null
+    guestName: (h && h.guestName) || '', guestDev: (h && h.guestDev) || null, lastN: (h && h.lastN) || {}, scored: (h && h.scored) || null,
+    here: false, ack: null, rematchAsk: false
   };
   Role.start(saved);
   if (!App.solo.s) App.solo.s = newCheckersGame({colorA: soloIsFree() ? 'b' : pickColor(App.solo)});
   render();
   Role.after();
 })();
+
 </script>
 </body>
 </html>
