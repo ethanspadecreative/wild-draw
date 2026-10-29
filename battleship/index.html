@@ -108,7 +108,7 @@ button { touch-action: manipulation; }
 .standings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .standings li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); }
 .standings li.me { box-shadow: inset 0 0 0 1.5px var(--paper); }
-.standings .rank { font-family: var(--font-display); color: var(--muted); width: 1.6em; }
+.standings .rank { font-family: var(--font-display); color: var(--muted); min-width: 1.6em; flex: none; }
 .standings .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .standings .pts { font-variant-numeric: tabular-nums; font-weight: 700; }
 .rules-body { color: var(--paper); font-size: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -550,7 +550,8 @@ const Kit = (() => {
     {key: 'dominoes', name: 'Bone Yard', kind: 'Dominoes', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
     {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
     {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
-    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'}
+    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
+    {key: 'imposters', name: 'Imposters', kind: 'Werewolf-style hidden roles', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -969,7 +970,7 @@ const bold = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 const store = Kit.store;
 const rid = () => Math.random().toString(36).slice(2, 10);
 const cleanName = n => String(n || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, 20);
-const SEATS = ['A', 'B', 'C', 'D'];
+const SEATS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const isCpu = id => typeof id === 'string' && id.startsWith('cpu');
 const listNames = a => (a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
 const fmtPts = x => { const w = Math.floor(x + 1e-9), f = x - w; return f < 0.01 ? String(w) : Math.abs(f - 0.5) < 0.01 ? (w ? w : '') + '½' : x.toFixed(1); };
@@ -1080,7 +1081,8 @@ function tally() {
     if (!placed.length) continue;
     const best = Math.min(...placed.map(x => ranks[x]));
     const top = placed.filter(x => ranks[x] === best);
-    for (const x of top) ctx.score[s.ids[x]] = (ctx.score[s.ids[x]] || 0) + 1 / top.length;
+    // Winners split the point, except in team games (G.teamScore), where everyone on the winning side gets one.
+    for (const x of top) ctx.score[s.ids[x]] = (ctx.score[s.ids[x]] || 0) + (G.teamScore ? 1 : 1 / top.length);
     if (ctx === App.host) Role.recordGame(s, ranks);
   }
 }
@@ -1112,7 +1114,8 @@ function newGameFor(ctx, seats, ids, names) {
   s.v = 0;
   return s;
 }
-const cpuName = (i, n) => (n > 1 ? `Computer ${i + 1}` : 'Computer');
+// A game can give its computer players names of their own (G.cpuNames).
+const cpuName = (i, n) => (G && G.cpuNames ? G.cpuNames[i % G.cpuNames.length] : n > 1 ? `Computer ${i + 1}` : 'Computer');
 // A fresh practice game against the computer (doesn't switch to it).
 // How many computer players a practice game gets: G.exactSeats fixes the table size, G.minSeats 1 allows playing alone.
 function soloOthers() {
@@ -1301,7 +1304,7 @@ function playerJoin(code) {
 // The framework's part of a view; the game checks its own fields in G.cleanView.
 function cleanBase(g) {
   if (!g || typeof g !== 'object' || typeof g.gid !== 'string' || g.gid.length > 24) return false;
-  if (!Array.isArray(g.seats) || g.seats.length < 1 || g.seats.length > 4 || !g.seats.every(x => SEATS.includes(x))) return false;
+  if (!Array.isArray(g.seats) || g.seats.length < 1 || g.seats.length > SEATS.length || !g.seats.every(x => SEATS.includes(x))) return false;
   if (!g.seats.includes(g.you)) return false;
   const names = {};
   for (const x of g.seats) names[x] = cleanName(g.names && g.names[x]) || 'Player';
@@ -1315,7 +1318,7 @@ function cleanBase(g) {
   g.asked = !!g.asked;
   g.turn = g.seats.includes(g.turn) ? g.turn : null;
   const ranks = {};
-  if (g.ranks && typeof g.ranks === 'object') for (const x of g.seats) if (Number.isInteger(g.ranks[x]) && g.ranks[x] > 0 && g.ranks[x] <= 4) ranks[x] = g.ranks[x];
+  if (g.ranks && typeof g.ranks === 'object') for (const x of g.seats) if (Number.isInteger(g.ranks[x]) && g.ranks[x] > 0 && g.ranks[x] <= SEATS.length) ranks[x] = g.ranks[x];
   g.ranks = g.over ? ranks : null;
   g.review = cleanReview(g.review);
   return true;
