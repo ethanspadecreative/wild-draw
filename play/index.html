@@ -17,8 +17,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&display=swap">
 <style>
 :root {
-  /* One column for phones: who invited you, your name, a two-across grid of game tiles (each with a live "they're at this table" light),
-     your record against them, then a new-link box and the add-to-home-screen tip. */
+  /* One column for phones: who invited you (over a fan of game icons), your name, a two-across grid of big colourful game tiles
+     (each with a live "they're at this table" light), your record against them, then a new-link box and the add-to-home-screen tip. */
   --ink: #141117;
   --panel: #211c26;
   --panel-2: #2b2531;
@@ -45,7 +45,7 @@ button { touch-action: manipulation; }
 }
 .top { display: flex; align-items: center; gap: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 20px; letter-spacing: .02em; }
-.brand img { width: 34px; height: 34px; border-radius: 9px; }
+.brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .8); }
 .icon-btn { margin-left: auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); cursor: pointer; padding: 0; }
 .icon-btn svg { width: 18px; height: 18px; }
 .icon-btn.spin svg { animation: spin .9s linear infinite; }
@@ -63,27 +63,44 @@ h1 { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; font-s
 label.big { display: block; font-weight: 700; font-size: 17px; margin-bottom: 8px; }
 .me { margin: 0; color: var(--muted); }
 .me b { color: var(--paper); }
-.games { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+/* A fan of game icons under the title. */
+.hero { display: grid; justify-items: center; padding: 10px 0 4px; }
+/* Two staggered rows of game icons, overlapping a little like a fanned pile. */
+.hero-row { --s: clamp(38px, 11.5vw, 52px); display: flex; justify-content: center; }
+.hero-row + .hero-row { margin-top: -6px; }
+.hero-row img { width: var(--s); height: var(--s); border-radius: 26%; flex: none; box-shadow: 0 8px 16px -8px rgba(0, 0, 0, .9), 0 0 0 2px var(--ink);
+  margin-left: min(-4px, calc((min(100vw - 40px, 520px) - var(--n) * var(--s)) / (var(--n) - 1))); }
+.hero-row img:first-child { margin-left: 0; }
+.hero-row img:nth-child(odd) { transform: rotate(-7deg) translateY(2px); }
+.hero-row img:nth-child(even) { transform: rotate(6deg); }
+.games { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .games li { min-width: 0; }
-.game { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-radius: 18px; background: var(--panel); border: 1.5px solid var(--line); color: var(--paper); text-decoration: none; transition: border-color .2s, transform .1s; }
+/* Each tile glows in its game's own colour (--c, with --cs a see-through version), with a big icon up top. */
+.game { position: relative; overflow: hidden; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 14px 12px 12px; border-radius: 20px;
+  background: radial-gradient(circle at 92% 0%, var(--cs) 0, transparent 62%), linear-gradient(165deg, var(--cs) 0%, transparent 58%), var(--panel);
+  border: 1.5px solid var(--cb, var(--line)); color: var(--paper); text-decoration: none; transition: border-color .2s, transform .1s; }
 .game:active { transform: scale(.985); }
-.game img { width: 52px; height: 52px; border-radius: 13px; flex: none; margin-bottom: 4px; }
-.g-name { font-family: var(--font-display); font-size: 16px; letter-spacing: .01em; line-height: 1.15; }
-.g-kind { color: var(--muted); font-size: 12.5px; line-height: 1.25; }
-.g-status { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); margin-top: auto; padding-top: 6px; }
+.game img { width: 76px; height: 76px; border-radius: 20px; flex: none; margin-bottom: 8px; box-shadow: 0 12px 22px -12px rgba(0, 0, 0, .9), 0 0 0 1.5px rgba(255, 255, 255, .08); }
+.g-name { font-family: var(--font-display); font-size: 17px; letter-spacing: .01em; line-height: 1.12; }
+.g-kind { color: var(--muted); font-size: 12px; line-height: 1.25; }
+.g-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); margin-top: auto; padding: 4px 9px 4px 7px; border-radius: 999px; background: rgba(0, 0, 0, .28); }
+.g-wrap { margin-top: auto; padding-top: 8px; }
 .g-status i { flex: none; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
 .game.checking .g-status i { animation: pulse 1s ease-in-out infinite alternate; }
 @keyframes pulse { from { opacity: .25; } to { opacity: 1; } }
-.game.open { border-color: var(--green); }
-.game.open .g-status { color: var(--paper); }
-.game.open .g-status i { background: var(--green); border-color: var(--green); box-shadow: 0 0 0 4px rgba(47, 157, 88, .22); }
-.game.busy .g-status i { background: var(--yellow); border-color: var(--yellow); }
+.game.open { border-color: var(--green); box-shadow: 0 0 0 3px rgba(47, 157, 88, .2); }
+.game.open .g-status { color: #fff; background: rgba(47, 157, 88, .9); }
+.game.open .g-status i { background: #fff; border-color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, .25); }
+.game.busy .g-status { color: #2a1d00; background: rgba(241, 187, 42, .92); }
+.game.busy .g-status i { background: #2a1d00; border-color: #2a1d00; }
 .rec { display: flex; flex-direction: column; gap: 10px; }
 .rec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .rec h2 { margin: 0; font-size: 16px; }
 .rec-total { font-family: var(--font-display); font-size: 18px; font-variant-numeric: tabular-nums; }
 .rec-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
-.rec-list li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 10px; background: var(--panel-2); font-size: 13px; }
+.rec-list li { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 12px; background: var(--panel-2); font-size: 13px; box-shadow: inset 3px 0 0 var(--c, var(--line)); }
+.rec-list li img { width: 26px; height: 26px; border-radius: 7px; flex: none; }
+.rec-list li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec-list b { font-variant-numeric: tabular-nums; }
 .rec .note { color: var(--muted); font-size: 12px; margin: 0; }
 details.card summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
@@ -103,12 +120,13 @@ details.card form { margin-top: 10px; }
 <body>
 <main class="app">
   <header class="top">
-    <div class="brand"><img src="../icons/night-192.png" alt="" width="34" height="34"><span>Game Night</span></div>
+    <div class="brand"><img src="../icons/night-192.png" alt="" width="44" height="44"><span>Game Night</span></div>
     <button type="button" class="icon-btn" id="refresh" aria-label="Check the tables again" title="Check again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button>
   </header>
   <section>
     <h1 id="title">Game Night</h1>
     <p class="sub" id="sub">Pick a game.</p>
+    <div class="hero" id="hero" aria-hidden="true"></div>
   </section>
 
   <form id="name-form" class="card" hidden>
@@ -364,13 +382,23 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno'},
-    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess'},
-    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers'},
-    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4'},
-    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship'},
-    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice'},
-    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker'}
+    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', name: 'Flip Side', kind: 'Reversi (Othello)', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', name: 'Pit Stop', kind: 'Mancala', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', name: 'Boxed In', kind: 'Dots and Boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', name: 'Match Up', kind: 'Memory', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', name: 'Big Bluff', kind: 'Liar’s Dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', name: 'Hit Me', kind: 'Blackjack', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', name: 'Bone Yard', kind: 'Dominoes', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -691,32 +719,88 @@ const Link = (() => {
   }
 
   // ===== probe: is a table open under this code? (used by the Game Night hub; never takes anyone's seat) =====
+  // All checks share one connection to the connection server, so looking at many tables at once stays light.
+  const Probe = {peer: null, ready: null, waiting: new Map(), idle: 0};
+  function resetProbe() {
+    const fns = [...Probe.waiting.values()];
+    Probe.waiting.clear();
+    try { Probe.peer && Probe.peer.destroy(); } catch {}
+    Probe.peer = null;
+    Probe.ready = null;
+    fns.forEach(fn => fn());
+  }
+  function probePeer() {
+    if (Probe.ready) return Probe.ready;
+    Probe.ready = new Promise((resolve, reject) => {
+      let p;
+      try { p = new Peer(peerOptions()); } catch (e) { Probe.ready = null; reject(e); return; }
+      Probe.peer = p;
+      p.on('open', () => resolve(p));
+      p.on('error', err => {
+        if (Probe.peer !== p) return;
+        if (err.type === 'peer-unavailable') {
+          const m = /peer\s+(\S+)/i.exec(err.message || '');
+          const fn = m && Probe.waiting.get(m[1]);
+          if (fn) fn();
+          return;
+        }
+        reject(err);
+        resetProbe();
+      });
+      p.on('disconnected', () => { if (Probe.peer === p) resetProbe(); });
+    });
+    return Probe.ready;
+  }
+  function releaseProbe() {
+    clearTimeout(Probe.idle);
+    Probe.idle = setTimeout(() => {
+      if (Probe.waiting.size || !Probe.peer) return;
+      const p = Probe.peer;
+      Probe.peer = null;
+      Probe.ready = null;
+      try { p.destroy(); } catch {}
+    }, 20000);
+  }
   function probe({game, prefix, code, dev}) {
     return new Promise(resolve => {
-      let settled = false, peer = null;
+      const id = prefix + code;
+      let settled = false, relayStarted = false;
       const finish = (res, conn) => {
         if (settled) return;
         settled = true;
         clearTimeout(t);
+        if (Probe.waiting.get(id) === fallback) Probe.waiting.delete(id);
         try { conn && conn.close(); } catch {}
-        setTimeout(() => { try { peer && peer.destroy(); } catch {} }, 300);
+        releaseProbe();
         resolve(res);
       };
       const ask = conn => {
         conn.on('data', msg => {
-          if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null}, conn);
+          if (msg && msg.type === 'probe-ok') {
+            finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null, tables: msg.open || null}, conn);
+          }
         });
         conn.send(dev ? {type: 'probe', dev} : {type: 'probe'});
       };
-      const viaRelay = () => relayJoin(game, code, 5000).then(c => { if (c) ask(c); else finish({open: false}); }, () => finish({open: false}));
+      const viaRelay = () => {
+        if (relayStarted || settled) return;
+        relayStarted = true;
+        relayJoin(game, code, 5000).then(c => {
+          if (!c) { finish({open: false}); return; }
+          if (settled) { try { c.close(); } catch {} return; }
+          ask(c);
+        }, () => finish({open: false}));
+      };
+      const fallback = () => viaRelay();
       const t = setTimeout(() => finish({open: false}), 14000);
       if (forceRelay || typeof Peer !== 'function') { viaRelay(); return; }
-      peer = new Peer(peerOptions());
-      peer.on('open', () => {
-        const c = peer.connect(prefix + code, {reliable: true});
+      Probe.waiting.set(id, fallback);
+      probePeer().then(p => {
+        if (settled) return;
+        const c = p.connect(id, {reliable: true});
         c.on('open', () => { c.via = 'p2p'; ask(c); });
-      });
-      peer.on('error', err => { if (!settled) viaRelay(); });
+        c.on('error', () => {});
+      }, fallback);
     });
   }
 
@@ -734,7 +818,10 @@ const cleanName = n => String(n || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim(
 const cleanCode = c => { c = String(c || '').trim().toUpperCase(); return /^[A-Z]{4}$/.test(c) ? c : ''; };
 // Every game on the site (the list lives in the shared kit). The invite lists their codes in this order.
 const GAMES = Kit.GAMES.map(g => ({...g, path: '../' + g.dir, join: g.ns + ':join', dirs: [g.dir.replace('/', '')]}));
-const SHARED_TABLE = new Set(['uno', 'dice', 'poker']);
+// Games where several friends share one table (so "busy" means it's full), rather than one friend at a time.
+const SHARED_TABLE = new Set(GAMES.filter(g => !/^2 players/.test(g.players)).map(g => g.key));
+// The game's colour, see-through, for the tile's glow.
+function tint(hex, a) { const n = parseInt(String(hex || '#3d3546').slice(1), 16); return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, ${a})`; }
 const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 
 // ----- the invite: codes for each table plus the host's name. The link carries it, and this device remembers it -----
@@ -821,10 +908,10 @@ function renderTiles() {
   $('games').innerHTML = GAMES.map(g => {
     const s = statusText(g);
     const href = g.path + (Hub.codes[g.key] ? '#' + Hub.codes[g.key] : '');
-    return `<li><a class="game ${s.cls}" href="${href}" data-game="${g.key}" aria-label="${esc(g.name)}, ${esc(g.kind)}: ${esc(s.text)}">
-      <img src="../icons/${g.icon}-192.png" alt="" width="52" height="52">
+    return `<li><a class="game ${s.cls}" href="${href}" data-game="${g.key}" style="--c:${g.color};--cs:${tint(g.color, 0.34)};--cb:${tint(g.color, 0.55)}" aria-label="${esc(g.name)}, ${esc(g.kind)}: ${esc(s.text)}">
+      <img src="../icons/${g.icon}-192.png" alt="" width="76" height="76">
       <span class="g-name">${esc(g.name)}</span><span class="g-kind">${esc(g.kind)} · ${esc(g.players)}</span>
-      <span class="g-status"><i></i><span>${esc(s.text)}</span></span></a></li>`;
+      <span class="g-wrap"><span class="g-status"><i></i><span>${esc(s.text)}</span></span></span></a></li>`;
   }).join('');
 }
 // Your results against the host, as their table reports them (they're kept on the host's phone).
@@ -843,7 +930,7 @@ function renderRec() {
   if (!rows.length) return;
   const t = {w: 0, l: 0, d: 0};
   const line = x => `${x.w}–${x.l}${x.d ? `–${x.d}` : ''}`;
-  $('rec-list').innerHTML = rows.map(g => { const x = Hub.rec.games[g.key]; t.w += x.w; t.l += x.l; t.d += x.d; return `<li><span>${esc(g.name)}</span><b>${line(x)}</b></li>`; }).join('');
+  $('rec-list').innerHTML = rows.map(g => { const x = Hub.rec.games[g.key]; t.w += x.w; t.l += x.l; t.d += x.d; return `<li style="--c:${g.color}"><img src="../icons/${g.icon}-192.png" alt="" width="26" height="26"><span>${esc(g.name)}</span><b>${line(x)}</b></li>`; }).join('');
   $('rec-title').textContent = `You vs ${Hub.host || 'your host'}`;
   $('rec-total').textContent = line(t);
   $('rec-note').textContent = `Wins–losses${t.d ? '–draws' : ''}, from your side. Updated whenever one of ${Hub.host ? Hub.host + '’s' : 'their'} tables is open.`;
@@ -858,7 +945,14 @@ function learnCodes(codes) {
   }
   if (changed) { saveInvite(); syncUrl(); setTimeout(checkAll, 50); }
 }
+function renderHero() {
+  const el = $('hero');
+  if (el.children.length) return;
+  const half = Math.ceil(GAMES.length / 2);
+  el.innerHTML = [GAMES.slice(0, half), GAMES.slice(half)].map(row => `<div class="hero-row" style="--n:${row.length}">${row.map(g => `<img src="../icons/${g.icon}-192.png" alt="" width="52" height="52">`).join('')}</div>`).join('');
+}
 function render() {
+  renderHero();
   const any = GAMES.some(g => Hub.codes[g.key]);
   $('title').textContent = Hub.host ? `${Hub.host}’s Game Night` : 'Game Night';
   const open = GAMES.filter(g => Hub.status[g.key] && Hub.status[g.key].state === 'open' && !Hub.status[g.key].busy).map(g => g.name);
@@ -876,24 +970,46 @@ function render() {
 }
 
 // ----- live check: is the host at each table? -----
-let lastCheck = 0;
-function checkAll() {
-  lastCheck = Date.now();
+// Any open table also reports which of the host's other tables are open (they share the host's phone), so one answer usually
+// covers every game: ask the table that answered last time first, and only ask each table in turn when that one is closed.
+let lastCheck = 0, round = 0;
+function probeOne(g, r0) {
+  const code = Hub.codes[g.key];
+  if (!code || Hub.probing[g.key]) return Promise.resolve(null);
+  Hub.probing[g.key] = true;
+  if (!Hub.status[g.key] || Hub.status[g.key].code !== code) Hub.status[g.key] = {state: 'checking', code};
+  return Link.probe({game: g.key, prefix: g.prefix, code, dev: Kit.deviceId()}).then(r => {
+    Hub.probing[g.key] = false;
+    if (Hub.codes[g.key] !== code) return null;
+    Hub.status[g.key] = {state: r.open ? 'open' : 'closed', busy: !!r.busy, code, round: r0, direct: true};
+    if (r.open && r.host && !Hub.host) { Hub.host = cleanName(r.host); saveInvite(); syncUrl(); }
+    if (r.open) { learnRec(r.rec); learnCodes(r.codes); store.set('gamenight:anchor', g.key); if (r.tables) fromTables(r.tables, r0); }
+    paintSpin();
+    render();
+    return r;
+  });
+}
+// What an open table said about the others. A table's own answer this round always wins over this.
+function fromTables(tables, r0) {
   for (const g of GAMES) {
-    const code = Hub.codes[g.key];
-    if (!code || Hub.probing[g.key]) continue;
-    Hub.probing[g.key] = true;
-    if (!Hub.status[g.key] || Hub.status[g.key].code !== code) Hub.status[g.key] = {state: 'checking', code};
-    Link.probe({game: g.key, prefix: g.prefix, code, dev: Kit.deviceId()}).then(r => {
-      Hub.probing[g.key] = false;
-      if (Hub.codes[g.key] !== code) return;
-      Hub.status[g.key] = {state: r.open ? 'open' : 'closed', busy: !!r.busy, code};
-      if (r.open && r.host && !Hub.host) { Hub.host = cleanName(r.host); saveInvite(); syncUrl(); }
-      if (r.open) { learnRec(r.rec); learnCodes(r.codes); }
-      paintSpin();
-      render();
-    });
+    const code = Hub.codes[g.key], st = Hub.status[g.key];
+    if (!code || (st && st.direct && st.round === r0)) continue;
+    const open = Object.prototype.hasOwnProperty.call(tables, g.key);
+    Hub.status[g.key] = {state: open ? 'open' : 'closed', busy: open && !!tables[g.key], code, round: r0, direct: false};
   }
+}
+async function checkAll() {
+  lastCheck = Date.now();
+  const r0 = ++round;
+  const anchor = GAMES.find(g => g.key === store.get('gamenight:anchor', null) && Hub.codes[g.key]);
+  paintSpin();
+  render();
+  if (anchor) {
+    const r = await probeOne(anchor, r0);
+    paintSpin();
+    if (r && r.open && r.tables) return;
+  }
+  for (const g of GAMES) if (g !== anchor) probeOne(g, r0);
   paintSpin();
   render();
 }

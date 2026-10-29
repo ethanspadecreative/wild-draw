@@ -1,0 +1,29 @@
+{
+  "name": "Knock Knock (host)",
+  "short_name": "Knock Knock",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#141117",
+  "theme_color": "#141117",
+  "icons": [
+    {
+      "src": "../icons/gin-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/gin-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/gin-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "table.html"
+}

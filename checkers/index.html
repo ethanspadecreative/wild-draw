@@ -530,13 +530,23 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno'},
-    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess'},
-    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers'},
-    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4'},
-    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship'},
-    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice'},
-    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker'}
+    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', name: 'Flip Side', kind: 'Reversi (Othello)', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', name: 'Pit Stop', kind: 'Mancala', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', name: 'Boxed In', kind: 'Dots and Boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', name: 'Match Up', kind: 'Memory', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', name: 'Big Bluff', kind: 'Liar’s Dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', name: 'Hit Me', kind: 'Blackjack', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', name: 'Bone Yard', kind: 'Dominoes', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -857,32 +867,88 @@ const Link = (() => {
   }
 
   // ===== probe: is a table open under this code? (used by the Game Night hub; never takes anyone's seat) =====
+  // All checks share one connection to the connection server, so looking at many tables at once stays light.
+  const Probe = {peer: null, ready: null, waiting: new Map(), idle: 0};
+  function resetProbe() {
+    const fns = [...Probe.waiting.values()];
+    Probe.waiting.clear();
+    try { Probe.peer && Probe.peer.destroy(); } catch {}
+    Probe.peer = null;
+    Probe.ready = null;
+    fns.forEach(fn => fn());
+  }
+  function probePeer() {
+    if (Probe.ready) return Probe.ready;
+    Probe.ready = new Promise((resolve, reject) => {
+      let p;
+      try { p = new Peer(peerOptions()); } catch (e) { Probe.ready = null; reject(e); return; }
+      Probe.peer = p;
+      p.on('open', () => resolve(p));
+      p.on('error', err => {
+        if (Probe.peer !== p) return;
+        if (err.type === 'peer-unavailable') {
+          const m = /peer\s+(\S+)/i.exec(err.message || '');
+          const fn = m && Probe.waiting.get(m[1]);
+          if (fn) fn();
+          return;
+        }
+        reject(err);
+        resetProbe();
+      });
+      p.on('disconnected', () => { if (Probe.peer === p) resetProbe(); });
+    });
+    return Probe.ready;
+  }
+  function releaseProbe() {
+    clearTimeout(Probe.idle);
+    Probe.idle = setTimeout(() => {
+      if (Probe.waiting.size || !Probe.peer) return;
+      const p = Probe.peer;
+      Probe.peer = null;
+      Probe.ready = null;
+      try { p.destroy(); } catch {}
+    }, 20000);
+  }
   function probe({game, prefix, code, dev}) {
     return new Promise(resolve => {
-      let settled = false, peer = null;
+      const id = prefix + code;
+      let settled = false, relayStarted = false;
       const finish = (res, conn) => {
         if (settled) return;
         settled = true;
         clearTimeout(t);
+        if (Probe.waiting.get(id) === fallback) Probe.waiting.delete(id);
         try { conn && conn.close(); } catch {}
-        setTimeout(() => { try { peer && peer.destroy(); } catch {} }, 300);
+        releaseProbe();
         resolve(res);
       };
       const ask = conn => {
         conn.on('data', msg => {
-          if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null}, conn);
+          if (msg && msg.type === 'probe-ok') {
+            finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null, tables: msg.open || null}, conn);
+          }
         });
         conn.send(dev ? {type: 'probe', dev} : {type: 'probe'});
       };
-      const viaRelay = () => relayJoin(game, code, 5000).then(c => { if (c) ask(c); else finish({open: false}); }, () => finish({open: false}));
+      const viaRelay = () => {
+        if (relayStarted || settled) return;
+        relayStarted = true;
+        relayJoin(game, code, 5000).then(c => {
+          if (!c) { finish({open: false}); return; }
+          if (settled) { try { c.close(); } catch {} return; }
+          ask(c);
+        }, () => finish({open: false}));
+      };
+      const fallback = () => viaRelay();
       const t = setTimeout(() => finish({open: false}), 14000);
       if (forceRelay || typeof Peer !== 'function') { viaRelay(); return; }
-      peer = new Peer(peerOptions());
-      peer.on('open', () => {
-        const c = peer.connect(prefix + code, {reliable: true});
+      Probe.waiting.set(id, fallback);
+      probePeer().then(p => {
+        if (settled) return;
+        const c = p.connect(id, {reliable: true});
         c.on('open', () => { c.via = 'p2p'; ask(c); });
-      });
-      peer.on('error', err => { if (!settled) viaRelay(); });
+        c.on('error', () => {});
+      }, fallback);
     });
   }
 
