@@ -542,7 +542,8 @@ const Kit = (() => {
     {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
     {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
     {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
-    {key: 'imposters', name: 'Imposters', kind: 'Werewolf-style hidden roles', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'}
+    {key: 'imposters', name: 'Imposters', kind: 'Werewolf-style hidden roles', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
+    {key: 'questions', name: 'Ask Away', kind: 'Party questions and trivia', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -1216,7 +1217,7 @@ function openReview(tab) {
   $('review-sum').innerHTML = reviewSummary(set.items, set.stats);
   $('review-list').innerHTML = set.items.map((it, i) =>
     `<li><button type="button" class="review-item" data-i="${i}"${it.pv == null ? ' data-static="1"' : ''}><span class="tag ${it.kind}">${KIND_WORD[it.kind]}</span><span class="txt">${bold(it.txt)}</span></button></li>`).join('');
-  $('review-note').textContent = set.items.some(x => x.pv != null) ? 'Tap a move to see it on the board.' : '';
+  $('review-note').textContent = set.items.some(x => x.pv != null) ? G.previewNote || 'Tap a move to see it on the board.' : '';
   App.ui.reviewSet = set;
   $('over').hidden = true;
   $('review').hidden = false;
