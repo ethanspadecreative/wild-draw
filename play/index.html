@@ -17,7 +17,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&display=swap">
 <style>
 :root {
-  /* One column for phones: who invited you, your name, the three game tiles (with a live "they're at this table" light), then a new-link box and the add-to-home-screen tip. */
+  /* One column for phones: who invited you, your name, a two-across grid of game tiles (each with a live "they're at this table" light),
+     your record against them, then a new-link box and the add-to-home-screen tip. */
   --ink: #141117;
   --panel: #211c26;
   --panel-2: #2b2531;
@@ -62,14 +63,14 @@ h1 { margin: 6px 0 0; font-family: var(--font-display); font-weight: 400; font-s
 label.big { display: block; font-weight: 700; font-size: 17px; margin-bottom: 8px; }
 .me { margin: 0; color: var(--muted); }
 .me b { color: var(--paper); }
-.games { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.game { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 18px; background: var(--panel); border: 1.5px solid var(--line); color: var(--paper); text-decoration: none; transition: border-color .2s, transform .1s; }
+.games { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.games li { min-width: 0; }
+.game { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-radius: 18px; background: var(--panel); border: 1.5px solid var(--line); color: var(--paper); text-decoration: none; transition: border-color .2s, transform .1s; }
 .game:active { transform: scale(.985); }
-.game img { width: 58px; height: 58px; border-radius: 14px; flex: none; }
-.g-main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.g-name { font-family: var(--font-display); font-size: 18px; letter-spacing: .01em; }
-.g-kind { color: var(--muted); font-size: 13px; }
-.g-status { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); margin-top: 3px; }
+.game img { width: 52px; height: 52px; border-radius: 13px; flex: none; margin-bottom: 4px; }
+.g-name { font-family: var(--font-display); font-size: 16px; letter-spacing: .01em; line-height: 1.15; }
+.g-kind { color: var(--muted); font-size: 12.5px; line-height: 1.25; }
+.g-status { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); margin-top: auto; padding-top: 6px; }
 .g-status i { flex: none; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
 .game.checking .g-status i { animation: pulse 1s ease-in-out infinite alternate; }
 @keyframes pulse { from { opacity: .25; } to { opacity: 1; } }
@@ -77,7 +78,14 @@ label.big { display: block; font-weight: 700; font-size: 17px; margin-bottom: 8p
 .game.open .g-status { color: var(--paper); }
 .game.open .g-status i { background: var(--green); border-color: var(--green); box-shadow: 0 0 0 4px rgba(47, 157, 88, .22); }
 .game.busy .g-status i { background: var(--yellow); border-color: var(--yellow); }
-.chev { width: 20px; height: 20px; flex: none; color: var(--muted); }
+.rec { display: flex; flex-direction: column; gap: 10px; }
+.rec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rec h2 { margin: 0; font-size: 16px; }
+.rec-total { font-family: var(--font-display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.rec-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.rec-list li { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 10px; background: var(--panel-2); font-size: 13px; }
+.rec-list b { font-variant-numeric: tabular-nums; }
+.rec .note { color: var(--muted); font-size: 12px; margin: 0; }
 details.card summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
 details.card summary::-webkit-details-marker { display: none; }
 details.card summary::after { content: "+"; font-size: 20px; color: var(--muted); }
@@ -111,6 +119,12 @@ details.card form { margin-top: 10px; }
   <p class="me" id="me" hidden>Playing as <b id="me-name"></b> · <button type="button" class="linkish" id="me-change">Change</button></p>
 
   <ul class="games" id="games"></ul>
+
+  <section class="card rec" id="rec" hidden>
+    <div class="rec-head"><h2 id="rec-title">Your record</h2><span class="rec-total" id="rec-total"></span></div>
+    <ul class="rec-list" id="rec-list"></ul>
+    <p class="note" id="rec-note"></p>
+  </section>
 
   <section class="card" id="empty" hidden>
     <p>Open the Game Night link your friend sent you, or paste it below.</p>
@@ -348,7 +362,18 @@ const Kit = (() => {
     play('react');
   }
 
-  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st};
+  // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
+  const GAMES = [
+    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno'},
+    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess'},
+    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers'},
+    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4'},
+    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship'},
+    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice'},
+    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker'}
+  ];
+
+  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
 })();
 
 </script>
@@ -666,7 +691,7 @@ const Link = (() => {
   }
 
   // ===== probe: is a table open under this code? (used by the Game Night hub; never takes anyone's seat) =====
-  function probe({game, prefix, code}) {
+  function probe({game, prefix, code, dev}) {
     return new Promise(resolve => {
       let settled = false, peer = null;
       const finish = (res, conn) => {
@@ -678,8 +703,10 @@ const Link = (() => {
         resolve(res);
       };
       const ask = conn => {
-        conn.on('data', msg => { if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via}, conn); });
-        conn.send({type: 'probe'});
+        conn.on('data', msg => {
+          if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null}, conn);
+        });
+        conn.send(dev ? {type: 'probe', dev} : {type: 'probe'});
       };
       const viaRelay = () => relayJoin(game, code, 5000).then(c => { if (c) ask(c); else finish({open: false}); }, () => finish({open: false}));
       const t = setTimeout(() => finish({open: false}), 14000);
@@ -705,15 +732,13 @@ const store = Kit.store;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const cleanName = n => String(n || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, 20);
 const cleanCode = c => { c = String(c || '').trim().toUpperCase(); return /^[A-Z]{4}$/.test(c) ? c : ''; };
-const GAMES = [
-  {key: 'uno', name: 'Wild Draw', kind: 'UNO · 2 to 4 players', icon: 'uno', path: '../', prefix: 'wilddraw-v1-', join: 'wilddraw:join', dirs: ['']},
-  {key: 'chess', name: 'Back Rank', kind: 'Chess', icon: 'chess', path: '../chess/', prefix: 'backrank-v1-', join: 'backrank:join', dirs: ['chess']},
-  {key: 'checkers', name: 'King Me', kind: 'Checkers', icon: 'checkers', path: '../checkers/', prefix: 'kingme-v1-', join: 'kingme:join', dirs: ['checkers']}
-];
+// Every game on the site (the list lives in the shared kit). The invite lists their codes in this order.
+const GAMES = Kit.GAMES.map(g => ({...g, path: '../' + g.dir, join: g.ns + ':join', dirs: [g.dir.replace('/', '')]}));
+const SHARED_TABLE = new Set(['uno', 'dice', 'poker']);
 const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 
 // ----- the invite: codes for each table plus the host's name. The link carries it, and this device remembers it -----
-const Hub = {codes: {}, host: '', name: '', status: {}, probing: {}};
+const Hub = {codes: {}, host: '', name: '', status: {}, probing: {}, rec: null};
 function loadInvite() {
   const saved = store.get('gamenight:invite', null) || {};
   const codes = {};
@@ -782,33 +807,64 @@ function loadName() {
 }
 
 // ----- tiles -----
-const CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 function statusText(g) {
   const host = Hub.host || 'Your friend';
   const code = Hub.codes[g.key];
-  if (!code) return {cls: '', text: 'No table code yet. You can type one in the game.'};
+  if (!code) return {cls: '', text: 'No code yet'};
   const st = Hub.status[g.key];
-  if (!st || st.state === 'checking') return {cls: 'checking', text: 'Checking the table…'};
-  if (st.state === 'open' && st.busy) return {cls: 'busy', text: g.key === 'uno' ? `${host}’s table is full right now` : `${host} is playing someone else right now`};
-  if (st.state === 'open') return {cls: 'open', text: `${host} is at this table now`};
-  return {cls: '', text: `${host} isn’t at this table right now`};
+  if (!st || st.state === 'checking') return {cls: 'checking', text: 'Checking…'};
+  if (st.state === 'open' && st.busy) return {cls: 'busy', text: SHARED_TABLE.has(g.key) ? 'Table is full' : `${host} is busy`};
+  if (st.state === 'open') return {cls: 'open', text: `${host} is here`};
+  return {cls: '', text: 'Not open now'};
 }
 function renderTiles() {
   $('games').innerHTML = GAMES.map(g => {
     const s = statusText(g);
     const href = g.path + (Hub.codes[g.key] ? '#' + Hub.codes[g.key] : '');
-    return `<li><a class="game ${s.cls}" href="${href}" data-game="${g.key}">
-      <img src="../icons/${g.icon}-192.png" alt="" width="58" height="58">
-      <span class="g-main"><span class="g-name">${esc(g.name)}</span><span class="g-kind">${esc(g.kind)}</span>
-      <span class="g-status"><i></i><span>${esc(s.text)}</span></span></span>${CHEV}</a></li>`;
+    return `<li><a class="game ${s.cls}" href="${href}" data-game="${g.key}" aria-label="${esc(g.name)}, ${esc(g.kind)}: ${esc(s.text)}">
+      <img src="../icons/${g.icon}-192.png" alt="" width="52" height="52">
+      <span class="g-name">${esc(g.name)}</span><span class="g-kind">${esc(g.kind)} · ${esc(g.players)}</span>
+      <span class="g-status"><i></i><span>${esc(s.text)}</span></span></a></li>`;
   }).join('');
+}
+// Your results against the host, as their table reports them (they're kept on the host's phone).
+function loadRec() { const r = store.get('gamenight:myrec', null); Hub.rec = r && r.games && typeof r.games === 'object' ? r : null; }
+function learnRec(rec) {
+  if (!rec || typeof rec !== 'object') return;
+  const n = x => (Number.isInteger(x) && x >= 0 && x < 100000 ? x : 0);
+  const games = {};
+  for (const g of GAMES) { const x = rec[g.key]; if (x && typeof x === 'object') games[g.key] = {w: n(x.l), l: n(x.w), d: n(x.d)}; }
+  Hub.rec = {games, at: Date.now()};
+  store.set('gamenight:myrec', Hub.rec);
+}
+function renderRec() {
+  const rows = Hub.rec ? GAMES.filter(g => { const x = Hub.rec.games[g.key]; return x && x.w + x.l + x.d > 0; }) : [];
+  $('rec').hidden = !rows.length;
+  if (!rows.length) return;
+  const t = {w: 0, l: 0, d: 0};
+  const line = x => `${x.w}–${x.l}${x.d ? `–${x.d}` : ''}`;
+  $('rec-list').innerHTML = rows.map(g => { const x = Hub.rec.games[g.key]; t.w += x.w; t.l += x.l; t.d += x.d; return `<li><span>${esc(g.name)}</span><b>${line(x)}</b></li>`; }).join('');
+  $('rec-title').textContent = `You vs ${Hub.host || 'your host'}`;
+  $('rec-total').textContent = line(t);
+  $('rec-note').textContent = `Wins–losses${t.d ? '–draws' : ''}, from your side. Updated whenever one of ${Hub.host ? Hub.host + '’s' : 'their'} tables is open.`;
+}
+// An open table tells us every table's current code, so new games show up without a new invite.
+function learnCodes(codes) {
+  if (!codes || typeof codes !== 'object') return;
+  let changed = false;
+  for (const g of GAMES) {
+    const c = cleanCode(codes[g.key]);
+    if (c && c !== Hub.codes[g.key]) { Hub.codes[g.key] = c; delete Hub.status[g.key]; changed = true; }
+  }
+  if (changed) { saveInvite(); syncUrl(); setTimeout(checkAll, 50); }
 }
 function render() {
   const any = GAMES.some(g => Hub.codes[g.key]);
   $('title').textContent = Hub.host ? `${Hub.host}’s Game Night` : 'Game Night';
-  const open = GAMES.filter(g => Hub.status[g.key] && Hub.status[g.key].state === 'open' && !Hub.status[g.key].busy);
+  const open = GAMES.filter(g => Hub.status[g.key] && Hub.status[g.key].state === 'open' && !Hub.status[g.key].busy).map(g => g.name);
+  const list = open.length <= 1 ? open.join('') : open.slice(0, -1).join(', ') + ' and ' + open[open.length - 1];
   $('sub').textContent = !any ? 'You need an invite link to join a table.'
-    : open.length ? `${Hub.host || 'Your friend'} is waiting at ${open.map(g => g.name).join(' and ')}.`
+    : open.length ? `${Hub.host || 'Your friend'} is waiting at ${list}.`
     : 'Pick a game. A green light means they’re at that table right now.';
   $('empty').hidden = any;
   if (!any) $('paste-box').open = true;
@@ -816,6 +872,7 @@ function render() {
   $('me').hidden = !Hub.name || !!Hub.editingName;
   $('me-name').textContent = Hub.name;
   renderTiles();
+  renderRec();
 }
 
 // ----- live check: is the host at each table? -----
@@ -827,11 +884,12 @@ function checkAll() {
     if (!code || Hub.probing[g.key]) continue;
     Hub.probing[g.key] = true;
     if (!Hub.status[g.key] || Hub.status[g.key].code !== code) Hub.status[g.key] = {state: 'checking', code};
-    Link.probe({game: g.key, prefix: g.prefix, code}).then(r => {
+    Link.probe({game: g.key, prefix: g.prefix, code, dev: Kit.deviceId()}).then(r => {
       Hub.probing[g.key] = false;
       if (Hub.codes[g.key] !== code) return;
       Hub.status[g.key] = {state: r.open ? 'open' : 'closed', busy: !!r.busy, code};
       if (r.open && r.host && !Hub.host) { Hub.host = cleanName(r.host); saveInvite(); syncUrl(); }
+      if (r.open) { learnRec(r.rec); learnCodes(r.codes); }
       paintSpin();
       render();
     });
@@ -920,6 +978,7 @@ $('install-hide').addEventListener('click', () => { store.set('gamenight:install
   const inv = inviteFrom(params) || inviteFrom(new URLSearchParams(location.hash.slice(1)));
   if (inv) applyInvite(inv);
   loadName();
+  loadRec();
   syncUrl();
   paintInstall();
   checkAll();

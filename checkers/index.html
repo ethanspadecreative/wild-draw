@@ -216,6 +216,9 @@ button { touch-action: manipulation; }
 #review-tabs .seg { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; }
 #review-tabs .seg button { flex: 1; border: 0; background: none; color: var(--muted); padding: 6px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
 #review-tabs .seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+/* advantages switch: sections marked .adv dim while advantages are off */
+.edge-off .adv { opacity: .4; pointer-events: none; }
+.edge-sec .seg button[data-v="off"][aria-pressed="true"] { background: var(--green, #2f9d58); color: #fff; }
 
 @media (max-width: 480px) {
   .brand { font-size: 17px; }
@@ -525,7 +528,18 @@ const Kit = (() => {
     play('react');
   }
 
-  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st};
+  // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
+  const GAMES = [
+    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno'},
+    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess'},
+    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers'},
+    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4'},
+    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship'},
+    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice'},
+    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker'}
+  ];
+
+  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
 })();
 
 </script>
@@ -843,7 +857,7 @@ const Link = (() => {
   }
 
   // ===== probe: is a table open under this code? (used by the Game Night hub; never takes anyone's seat) =====
-  function probe({game, prefix, code}) {
+  function probe({game, prefix, code, dev}) {
     return new Promise(resolve => {
       let settled = false, peer = null;
       const finish = (res, conn) => {
@@ -855,8 +869,10 @@ const Link = (() => {
         resolve(res);
       };
       const ask = conn => {
-        conn.on('data', msg => { if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via}, conn); });
-        conn.send({type: 'probe'});
+        conn.on('data', msg => {
+          if (msg && msg.type === 'probe-ok') finish({open: true, host: String(msg.host || ''), busy: !!msg.busy, via: conn.via, codes: msg.codes || null, rec: msg.rec || null}, conn);
+        });
+        conn.send(dev ? {type: 'probe', dev} : {type: 'probe'});
       };
       const viaRelay = () => relayJoin(game, code, 5000).then(c => { if (c) ask(c); else finish({open: false}); }, () => finish({open: false}));
       const t = setTimeout(() => finish({open: false}), 14000);

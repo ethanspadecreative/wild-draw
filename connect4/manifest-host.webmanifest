@@ -1,0 +1,29 @@
+{
+  "name": "Drop Four (host)",
+  "short_name": "Drop Four",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#141117",
+  "theme_color": "#141117",
+  "icons": [
+    {
+      "src": "../icons/connect4-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/connect4-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/connect4-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "table.html"
+}
