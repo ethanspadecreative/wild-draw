@@ -1,6 +1,6 @@
 {
-  "name": "Flip Side (host)",
-  "short_name": "Flip Side",
+  "name": "Reversi (host)",
+  "short_name": "Reversi",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

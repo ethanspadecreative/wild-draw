@@ -1,6 +1,6 @@
 {
-  "name": "Back Rank",
-  "short_name": "Back Rank",
+  "name": "Chess",
+  "short_name": "Chess",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

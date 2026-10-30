@@ -1,6 +1,6 @@
 {
-  "name": "King Me",
-  "short_name": "King Me",
+  "name": "Checkers",
+  "short_name": "Checkers",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

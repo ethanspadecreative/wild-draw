@@ -1,6 +1,6 @@
 {
-  "name": "Broadside (host)",
-  "short_name": "Broadside",
+  "name": "Battleship (host)",
+  "short_name": "Battleship",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

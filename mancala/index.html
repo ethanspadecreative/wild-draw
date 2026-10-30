@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pit Stop</title>
+<title>Mancala</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141117">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pit Stop">
+<meta name="apple-mobile-web-app-title" content="Mancala">
 <link rel="apple-touch-icon" href="../icons/mancala-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/mancala-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -167,7 +167,7 @@ button { touch-action: manipulation; }
 .edge-off .adv { opacity: .4; pointer-events: none; }
 .edge-sec .seg button[data-v="off"][aria-pressed="true"] { background: var(--green, #2f9d58); color: #fff; }
 
-/* ---------- Pit Stop: a wooden board; your six pits along the bottom, your store on the right ---------- */
+/* ---------- Mancala: a wooden board; your six pits along the bottom, your store on the right ---------- */
 .gem { border-radius: 6px; background: radial-gradient(circle at 30% 50%, #e8c27a 0 18%, transparent 19%), radial-gradient(circle at 70% 50%, #e8c27a 0 18%, transparent 19%), #7a4a22; }
 .bar { display: flex; align-items: center; gap: 10px; min-height: 30px; min-width: 0; }
 .bar strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -215,7 +215,7 @@ button { touch-action: manipulation; }
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><span class="gem" aria-hidden="true"></span>Pit Stop</div>
+    <div class="brand"><span class="gem" aria-hidden="true"></span>Mancala</div>
     <div class="score" id="score" aria-label="Score"></div>
     <div class="top-tools">
       <span class="pill" id="pill"><i></i><span id="pill-text"></span></span>
@@ -281,7 +281,7 @@ button { touch-action: manipulation; }
 <div class="overlay" id="howto" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="howto-title">
     <p class="eyebrow">How to play</p>
-    <h2 id="howto-title">Pit Stop</h2>
+    <h2 id="howto-title">Mancala</h2>
     <div class="rules-body"><p>Your six pits run along the bottom, and your store is the big one on the right. Collect more seeds in your store than your friend.</p>
     <ul>
       <li>Tap one of your pits. Its seeds are dropped one at a time into the following pits, going right along your side, into your store, then along your friend’s side. You skip their store.</li>
@@ -513,25 +513,25 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
-    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
-    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
-    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
-    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
-    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
-    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
-    {key: 'reversi', name: 'Flip Side', kind: 'Reversi (Othello)', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
-    {key: 'mancala', name: 'Pit Stop', kind: 'Mancala', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
-    {key: 'dots', name: 'Boxed In', kind: 'Dots and Boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
-    {key: 'memory', name: 'Match Up', kind: 'Memory', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
-    {key: 'liarsdice', name: 'Big Bluff', kind: 'Liar’s Dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
-    {key: 'blackjack', name: 'Hit Me', kind: 'Blackjack', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
-    {key: 'dominoes', name: 'Bone Yard', kind: 'Dominoes', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
-    {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
-    {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
-    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
-    {key: 'imposters', name: 'Imposters', kind: 'Werewolf-style hidden roles', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
-    {key: 'questions', name: 'Ask Away', kind: 'Party questions and trivia', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
+    {key: 'uno', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
+    {key: 'imposters', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
+    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -1581,7 +1581,7 @@ const T = {
 };
 </script>
 <script id="rules">
-// Pit Stop rules (Kalah). Board: 14 numbers. Pits 0-5 and store 6 belong to the first player; pits 7-12 and store 13 to the second.
+// Mancala rules (Kalah). Board: 14 numbers. Pits 0-5 and store 6 belong to the first player; pits 7-12 and store 13 to the second.
 const MC = (() => {
   const store = side => (side === 0 ? 6 : 13);
   const pitsOf = side => (side === 0 ? [0, 1, 2, 3, 4, 5] : [7, 8, 9, 10, 11, 12]);
@@ -1620,7 +1620,7 @@ const MC = (() => {
 })();
 </script>
 
-<script>// Pit Stop: Mancala (Kalah) on the shared Game Night table.
+<script>// Mancala: Mancala (Kalah) on the shared Game Night table.
 // A game record: {order: [first player (side 0), second player (side 1)], seeds, b: the board, side: whose turn (0/1),
 //   moves: [{side, pit}], last: {side, pit, path, again, capture}, result}.
 const pitLabel = (side, pit) => pit - (side === 0 ? 0 : 7) + 1;
@@ -1642,7 +1642,7 @@ function mcFinish(s) {
 }
 
 const PS = {
-  key: 'mancala', name: 'Pit Stop', kind: 'Mancala', ns: 'pitstop', prefix: 'pitstop-v1-', proto: 1, version: 1,
+  key: 'mancala', name: 'Mancala', kind: 'Mancala', ns: 'pitstop', prefix: 'pitstop-v1-', proto: 1, version: 1,
   maxPlayers: 2, soloCpus: 1, settings: {seeds: 4},
   newGame({seats, first, settings}) {
     const seeds = [3, 4, 6].includes(Number(settings.seeds)) ? Number(settings.seeds) : 4;

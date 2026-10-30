@@ -1,6 +1,6 @@
 {
-  "name": "Big Bluff (host)",
-  "short_name": "Big Bluff",
+  "name": "Liar’s Dice (host)",
+  "short_name": "Liar’s Dice",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

@@ -1,6 +1,6 @@
 {
-  "name": "Shoot the Moon",
-  "short_name": "Shoot the Moon",
+  "name": "Hearts",
+  "short_name": "Hearts",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

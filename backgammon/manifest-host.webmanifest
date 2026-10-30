@@ -1,6 +1,6 @@
 {
-  "name": "Bear Off (host)",
-  "short_name": "Bear Off",
+  "name": "Backgammon (host)",
+  "short_name": "Backgammon",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

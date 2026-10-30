@@ -1,6 +1,6 @@
 {
-  "name": "Boxed In",
-  "short_name": "Boxed In",
+  "name": "Dots and Boxes",
+  "short_name": "Dots and Boxes",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

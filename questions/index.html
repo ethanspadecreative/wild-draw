@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ask Away</title>
+<title>Party Questions</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141117">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Ask Away">
+<meta name="apple-mobile-web-app-title" content="Party Questions">
 <link rel="apple-touch-icon" href="../icons/questions-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/questions-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -167,7 +167,7 @@ button { touch-action: manipulation; }
 .edge-off .adv { opacity: .4; pointer-events: none; }
 .edge-sec .seg button[data-v="off"][aria-pressed="true"] { background: var(--green, #2f9d58); color: #fff; }
 
-/* ---------- Ask Away: pick a mode, then a big card with the question, the answers, and everyone at the table ---------- */
+/* ---------- Party Questions: pick a mode, then a big card with the question, the answers, and everyone at the table ---------- */
 .gem { border-radius: 50%; background: radial-gradient(circle at 50% 74%, #fff 0 9%, transparent 10%), radial-gradient(circle at 50% 38%, transparent 0 17%, #fff 18% 27%, transparent 28%), conic-gradient(from 200deg, #0ea5e9, #8b5cf6, #ec4899, #f59e0b, #0ea5e9); }
 .seg.wrap { border-radius: 16px; }
 .aa-setup { display: grid; gap: 10px; padding: 12px; border-radius: 18px; background: var(--panel); border: 1.5px solid var(--line); }
@@ -289,7 +289,7 @@ button { touch-action: manipulation; }
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><span class="gem" aria-hidden="true"></span>Ask Away</div>
+    <div class="brand"><span class="gem" aria-hidden="true"></span>Party Questions</div>
     <div class="score" id="score" aria-label="Score"></div>
     <div class="top-tools">
       <span class="pill" id="pill"><i></i><span id="pill-text"></span></span>
@@ -371,7 +371,7 @@ button { touch-action: manipulation; }
 <div class="overlay" id="howto" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="howto-title">
     <p class="eyebrow">How to play</p>
-    <h2 id="howto-title">Ask Away</h2>
+    <h2 id="howto-title">Party Questions</h2>
     <div class="rules-body"><p>A party game of questions that never runs out. Pick a mode, and everyone answers on their own phone at the same time. Then the card flips and you see how everyone answered.</p>
     <ul>
       <li><b>Party Mix:</b> a bit of everything below, shuffled.</li>
@@ -609,25 +609,25 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'Wild Draw', kind: 'UNO', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
-    {key: 'chess', name: 'Back Rank', kind: 'Chess', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
-    {key: 'checkers', name: 'King Me', kind: 'Checkers', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
-    {key: 'connect4', name: 'Drop Four', kind: 'Connect Four', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
-    {key: 'battleship', name: 'Broadside', kind: 'Battleship', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
-    {key: 'dice', name: 'Snake Eyes', kind: 'Yahtzee-style dice', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
-    {key: 'poker', name: 'All In', kind: 'Texas Hold’em', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
-    {key: 'reversi', name: 'Flip Side', kind: 'Reversi (Othello)', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
-    {key: 'mancala', name: 'Pit Stop', kind: 'Mancala', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
-    {key: 'dots', name: 'Boxed In', kind: 'Dots and Boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
-    {key: 'memory', name: 'Match Up', kind: 'Memory', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
-    {key: 'liarsdice', name: 'Big Bluff', kind: 'Liar’s Dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
-    {key: 'blackjack', name: 'Hit Me', kind: 'Blackjack', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
-    {key: 'dominoes', name: 'Bone Yard', kind: 'Dominoes', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
-    {key: 'backgammon', name: 'Bear Off', kind: 'Backgammon', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
-    {key: 'hearts', name: 'Shoot the Moon', kind: 'Hearts', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
-    {key: 'gin', name: 'Knock Knock', kind: 'Gin Rummy', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
-    {key: 'imposters', name: 'Imposters', kind: 'Werewolf-style hidden roles', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
-    {key: 'questions', name: 'Ask Away', kind: 'Party questions and trivia', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
+    {key: 'uno', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
+    {key: 'imposters', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
+    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -1677,7 +1677,7 @@ const T = {
 };
 </script>
 
-<script>// Ask Away: the raw material. Facts for the question makers (each fact turns into many different questions),
+<script>// Party Questions: the raw material. Facts for the question makers (each fact turns into many different questions),
 // hand-written trivia, and the party prompts with the pieces that combine into thousands more.
 // Fields are split on "|". Keep every fact accurate: a wrong answer in a trivia game is worse than no question.
 const QD = {};
@@ -4031,7 +4031,7 @@ QD.botChicken = `Error 404: courage not found.
 I’ll pass. My circuits are shy.
 Nope. Not in this firmware.`;
 
-// Ask Away: a party question game for 1 to 8 on the shared Game Night table (computers can fill in).
+// Party Questions: a party question game for 1 to 8 on the shared Game Night table (computers can fill in).
 // Modes: Party Mix, Trivia (by topic), Would You Rather, Never Have I Ever, Most Likely To, Hot Takes, Couples, Truth or Dare.
 // Questions are made fresh from the facts and prompt pieces in QD (questions-data.js), and each phone remembers what it has
 // already shown, so they don't repeat for a long time. Free trivia from the Open Trivia Database is mixed in when it can be reached.
@@ -4731,9 +4731,13 @@ function makeCard(s, type) {
     const at = Seen.list.indexOf(x.id);
     if (at < oldAt) { old = x; oldAt = at; }
   }
-  const c = fresh || old || any || QG.trivia('any', 1, {});
-  if (c.id && type !== 'tod') { Seen.add(c.id); s.used.push(c.id); if (s.used.length > 400) s.used.splice(0, s.used.length - 400); }
-  return {card: c, fresh: !!fresh};
+  return {card: fresh || old || any || QG.trivia('any', 1, {}), fresh: !!fresh};
+}
+// The kinds of card each mixed mode can switch between when one has run dry for now.
+function kindsFor(s) {
+  if (s.set.mode === 'cpl') return ['tot', 'who', 'guess', 'talk'];
+  if (s.set.mode === 'mix') return ['trivia', 'wyr', 'hot', 'nhie', 'talk', ...(s.order.length >= 3 ? ['mlt'] : []), ...(s.order.length >= 2 ? ['guess'] : [])];
+  return [];
 }
 const subjectNext = s => { s.subIdx = ((s.subIdx ?? -1) + 1) % s.order.length; return s.order[s.subIdx]; };
 function setPhase(s, phase, ms) { s.phase = phase; s.phaseAt = Date.now(); s.deadline = ms ? Date.now() + ms : 0; s.ready = {}; s.botAt = {}; }
@@ -4745,8 +4749,10 @@ function nextCard(s) {
   s.n++;
   let type = nextType(s), m = makeCard(s, type);
   // In the mixed modes, a kind of card that has run dry for now makes way for another kind.
-  for (let k = 0; k < 5 && !m.fresh && (s.set.mode === 'mix' || s.set.mode === 'cpl'); k++) { type = nextType(s); m = makeCard(s, type); }
-  s.card = m.card;
+  if (!m.fresh) for (const t of shuffle(kindsFor(s).filter(t => t !== type))) { const x = makeCard(s, t); if (x.fresh) { type = t; m = x; break; } }
+  const c = m.card;
+  if (c.id && type !== 'tod') { Seen.add(c.id); s.used.push(c.id); if (s.used.length > 400) s.used.splice(0, s.used.length - 400); }
+  s.card = c;
   s.ans = {};
   s.gain = null;
   s.sub = type === 'tod' || type === 'guess' ? subjectNext(s) : null;
@@ -4905,7 +4911,7 @@ function tick(s, now) {
 }
 
 const AA = {
-  key: 'questions', name: 'Ask Away', kind: 'Party questions and trivia', ns: 'askaway', prefix: 'askaway-v1-', proto: 1, version: 1,
+  key: 'questions', name: 'Party Questions', kind: 'Party questions and trivia', ns: 'askaway', prefix: 'askaway-v1-', proto: 1, version: 1,
   maxPlayers: 8, minSeats: 1, statsOnly: true, seeLabel: 'See the cards', previewNote: 'Tap a card to see it again.',
   settings: {mode: 'mix', cat: 'any', rounds: 20, timer: 20, diff: 'mixed', spicy: false, online: true},
   cpuNames: ['Rosa', 'Milo', 'Juno', 'Otto', 'Pip', 'Wren', 'Zed'],

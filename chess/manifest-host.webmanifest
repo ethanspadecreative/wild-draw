@@ -1,6 +1,6 @@
 {
-  "name": "Back Rank (host)",
-  "short_name": "Back Rank",
+  "name": "Chess (host)",
+  "short_name": "Chess",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

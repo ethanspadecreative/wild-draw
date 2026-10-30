@@ -1,6 +1,6 @@
 {
-  "name": "Drop Four",
-  "short_name": "Drop Four",
+  "name": "Connect Four",
+  "short_name": "Connect Four",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

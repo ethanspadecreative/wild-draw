@@ -1,6 +1,6 @@
 {
-  "name": "Wild Draw",
-  "short_name": "Wild Draw",
+  "name": "UNO",
+  "short_name": "UNO",
   "scope": "./",
   "display": "standalone",
   "background_color": "#141117",

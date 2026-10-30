@@ -1,6 +1,6 @@
 {
-  "name": "Bone Yard (host)",
-  "short_name": "Bone Yard",
+  "name": "Dominoes (host)",
+  "short_name": "Dominoes",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

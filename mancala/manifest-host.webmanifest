@@ -1,6 +1,6 @@
 {
-  "name": "Pit Stop (host)",
-  "short_name": "Pit Stop",
+  "name": "Mancala (host)",
+  "short_name": "Mancala",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

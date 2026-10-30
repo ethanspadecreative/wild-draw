@@ -1,6 +1,6 @@
 {
-  "name": "Hit Me",
-  "short_name": "Hit Me",
+  "name": "Blackjack",
+  "short_name": "Blackjack",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

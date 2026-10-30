@@ -1,6 +1,6 @@
 {
-  "name": "Flip Side",
-  "short_name": "Flip Side",
+  "name": "Reversi",
+  "short_name": "Reversi",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

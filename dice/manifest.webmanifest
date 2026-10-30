@@ -1,6 +1,6 @@
 {
-  "name": "Snake Eyes",
-  "short_name": "Snake Eyes",
+  "name": "Yahtzee",
+  "short_name": "Yahtzee",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

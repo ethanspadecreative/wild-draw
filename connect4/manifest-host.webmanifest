@@ -1,6 +1,6 @@
 {
-  "name": "Drop Four (host)",
-  "short_name": "Drop Four",
+  "name": "Connect Four (host)",
+  "short_name": "Connect Four",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

@@ -1,6 +1,6 @@
 {
-  "name": "Match Up",
-  "short_name": "Match Up",
+  "name": "Memory",
+  "short_name": "Memory",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

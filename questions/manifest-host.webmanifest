@@ -1,6 +1,6 @@
 {
-  "name": "Ask Away (host)",
-  "short_name": "Ask Away",
+  "name": "Party Questions (host)",
+  "short_name": "Party Questions",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",

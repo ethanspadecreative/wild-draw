@@ -1,6 +1,6 @@
 {
-  "name": "Knock Knock (host)",
-  "short_name": "Knock Knock",
+  "name": "Gin Rummy (host)",
+  "short_name": "Gin Rummy",
   "scope": "../",
   "display": "standalone",
   "background_color": "#141117",
