@@ -576,7 +576,13 @@ const Kit = (() => {
     {key: 'hearts', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
     {key: 'gin', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
     {key: 'imposters', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
-    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'}
+    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'},
+    {key: 'hangman', name: 'Hangman', kind: 'Guess the word, letter by letter', players: '1 to 6 players (computers can join)', ns: 'hangman', prefix: 'hangman-v1-', dir: 'hangman/', icon: 'hangman', color: '#64748b'},
+    {key: 'uttt', name: 'Ultimate Tic-Tac-Toe', kind: 'Tic-tac-toe inside tic-tac-toe', players: '2 players', ns: 'uttt', prefix: 'uttt-v1-', dir: 'uttt/', icon: 'uttt', color: '#4338ca'},
+    {key: 'scrabble', name: 'Scrabble', kind: 'Make words on the board', players: '2 to 4 players', ns: 'scrabble', prefix: 'scrabble-v1-', dir: 'scrabble/', icon: 'scrabble', color: '#c2410c'},
+    {key: 'pictionary', name: 'Pictionary', kind: 'Draw it, they guess it', players: '2 to 8 players (computers guess along)', ns: 'pictionary', prefix: 'pictionary-v1-', dir: 'pictionary/', icon: 'pictionary', color: '#c026d3'},
+    {key: 'taboo', name: 'Taboo', kind: 'Describe it without the taboo words', players: '2 to 8 players (computers can join)', ns: 'taboo', prefix: 'taboo-v1-', dir: 'taboo/', icon: 'taboo', color: '#e11d48'},
+    {key: 'wavelength', name: 'Wavelength', kind: 'Clue where it lands on the dial', players: '2 to 8 players (computers can join)', ns: 'wavelength', prefix: 'wavelength-v1-', dir: 'wavelength/', icon: 'wavelength', color: '#d97706'}
   ];
 
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
@@ -1086,6 +1092,26 @@ function act(a) {
   if (!r.ok) { toast(r.err); return; }
   afterChange();
 }
+// ---------- live: quick updates that skip the full table update (a drawing as it's drawn) ----------
+// G.live(s, seat, d) checks d against the game on the table, applies it and returns what to pass on (or null); G.liveIn(d) shows it on a phone.
+function liveSend(d) {
+  if (!G.live) return;
+  if (App.mode === 'guest') {
+    const g = App.guest;
+    if (!g.view || !interactive()) return;
+    try { Net.conn.send({type: 'live', d, g: g.view.gid}); } catch {}
+    return;
+  }
+  const ctx = liveCtx();
+  if (ctx && ctx.s) liveApply(ctx.s, 'A', d, null);
+}
+function liveApply(s, seat, d, from) {
+  let out = null;
+  try { out = G.live(s, seat, d); } catch (e) { console.error(e); }
+  if (!out) return;
+  Role.live(s, out, from);
+  if (G.liveIn) { try { G.liveIn(out); } catch (e) { console.error(e); } }
+}
 function afterChange() {
   tally();
   save();
@@ -1131,7 +1157,7 @@ function pickFirst(ctx, seats) {
   return seats[i];
 }
 function newGameFor(ctx, seats, ids, names) {
-  const s = G.newGame({seats, first: pickFirst(ctx, seats), settings: App.settings});
+  const s = G.newGame({seats, first: pickFirst(ctx, seats), settings: App.settings, ids});
   s.gid = rid();
   s.seats = seats.slice();
   s.ids = ids;
@@ -1353,6 +1379,7 @@ function playerOnData(msg) {
   const P = App.guest;
   if (msg.type === 'react') { if (Kit.validEmoji(msg.e)) Kit.showReaction(msg.e, cleanName(msg.from) || P.hostName); return; }
   if (msg.type === 'full') { Net.note = 'That table is full right now.'; toast(Net.note); render(); return; }
+  if (msg.type === 'live') { if (G.liveIn && App.mode === 'guest' && P.view && msg.g === P.view.gid) { try { G.liveIn(msg.d); } catch (e) { console.error(e); } } return; }
   if (msg.type !== 'state') return;
   P.old = msg.proto !== G.proto;
   P.hostName = cleanName(msg.host) || 'Host';
@@ -1406,6 +1433,7 @@ $('join').addEventListener('submit', e => {
 });
 
 const Role = {
+  live() {},
   start() {
     const j = store.get(G.ns + ':join', null) || {};
     App.guest.myName = cleanName(j.name) || cleanName(store.get('gamenight:name', ''));

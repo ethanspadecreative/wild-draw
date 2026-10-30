@@ -1,0 +1,29 @@
+{
+  "name": "Wavelength",
+  "short_name": "Wavelength",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#141117",
+  "theme_color": "#141117",
+  "icons": [
+    {
+      "src": "../icons/wavelength-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/wavelength-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/wavelength-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "./"
+}

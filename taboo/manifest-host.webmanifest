@@ -1,0 +1,29 @@
+{
+  "name": "Taboo (host)",
+  "short_name": "Taboo",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#141117",
+  "theme_color": "#141117",
+  "icons": [
+    {
+      "src": "../icons/taboo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/taboo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icons/taboo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "table.html"
+}
