@@ -49,10 +49,14 @@ button { touch-action: manipulation; }
 .top { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 20px; letter-spacing: .02em; white-space: nowrap; }
 .gem { width: 15px; height: 15px; border-radius: 4px; flex: none; }
-.score { display: flex; align-items: baseline; gap: 6px 8px; flex-wrap: wrap; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 0; }
-.score b { font-family: var(--font-display); font-weight: 400; font-size: 18px; color: var(--paper); }
-.score .who { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.score .sep { opacity: .6; }
+.score { order: 3; flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; font-variant-numeric: tabular-nums; }
+.score::-webkit-scrollbar { display: none; }
+.tchip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.tchip i { font-style: normal; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); color: var(--paper); font-size: 14px; font-weight: 800; line-height: 1; }
+.tchip .who { max-width: 7.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tchip b { font-family: var(--font-display); font-weight: 400; font-size: 14px; color: var(--paper); }
+.tchip.me { border-color: rgba(245, 239, 227, .55); color: var(--paper); }
+.tchip.lead b { color: var(--yellow); }
 .top-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--muted); white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
 .pill i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; flex: none; }
@@ -78,15 +82,20 @@ button { touch-action: manipulation; }
 .banner p { margin: 0; flex: 1 1 240px; min-width: 0; text-wrap: pretty; }
 .banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .code { font-family: var(--font-display); font-weight: 400; letter-spacing: .14em; padding: 2px 8px; border-radius: 6px; background: var(--ink); color: var(--paper); white-space: nowrap; }
-.join { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
-.join-copy { flex: 1 1 100%; }
-.join h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 20px; }
-.join-copy p { margin: 4px 0 0; color: var(--muted); }
-.join label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); flex: 1 1 150px; min-width: 0; }
+/* One slim line: "Got a code? [ABCD] [your name] Join". The practice game sits right under it. */
+.join { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 7px 7px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.join-lead { font-weight: 700; font-size: 14px; white-space: nowrap; }
 .field-input { box-sizing: border-box; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--ink); color: var(--paper); font-weight: 600; font-size: 16px; }
 .field-input:focus { border-color: var(--paper); outline: none; }
-#join-code { font-family: var(--font-display); font-weight: 400; letter-spacing: .2em; text-transform: uppercase; }
-.join-note { flex-basis: 100%; margin: 0; min-height: 18px; font-size: 13px; color: var(--muted); }
+.join .field-input { width: auto; padding: 7px 10px; }
+#join-code { flex: 0 0 74px; font-family: var(--font-display); font-weight: 400; letter-spacing: .14em; text-transform: uppercase; text-align: center; }
+#join-name { flex: 1 1 80px; }
+/* small phones: keep the join bar on one line */
+@media (max-width: 380px) { .join-lead { font-size: 13px; } #join-code { flex-basis: 66px; letter-spacing: .06em; padding-left: 6px; padding-right: 6px; } #join-name { flex-basis: 52px; } .join .btn { padding: 7px 12px; } }
+@media (max-width: 340px) { .join-lead { display: none; } }
+.join .btn { padding: 7px 15px; }
+.join-note { flex-basis: 100%; margin: 0 7px 2px 0; font-size: 13px; color: var(--muted); }
+.join-note:empty { display: none; }
 
 /* ---------- status + controls ---------- */
 .status { margin: 0; text-align: center; font-family: var(--font-display); font-weight: 400; font-size: 18px; min-height: 24px; text-wrap: balance; }
@@ -207,6 +216,62 @@ button { touch-action: manipulation; }
   .status { font-size: 16px; }
   .btn { padding: 8px 14px; font-size: 14px; }
 }
+/* the game's own area, and what sits beside it on a wide screen (on a phone these are just part of the one column) */
+.game { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.side-top, .side-bottom { display: contents; }
+/* Laptops and big tablets: the game on the left, the table's messages, status and buttons beside it. */
+@media (min-width: 980px) {
+  body:not(.tv) .app { max-width: 1080px; display: grid; grid-template-columns: minmax(0, 640px) minmax(300px, 360px); grid-template-rows: auto auto auto 1fr;
+    grid-template-areas: "top top" "game a" "game b" "game ."; justify-content: center; column-gap: 32px; row-gap: 12px; align-items: start; }
+  body:not(.tv) .top { grid-area: top; }
+  body:not(.tv) .game { grid-area: game; }
+  body:not(.tv) .side-top, body:not(.tv) .side-bottom { display: flex; flex-direction: column; gap: 10px; }
+  body:not(.tv) .side-top { grid-area: a; }
+  body:not(.tv) .side-bottom { grid-area: b; position: sticky; top: 12px; }
+  body:not(.tv) .side-top:empty, body:not(.tv) .side-top:not(:has(> :not([hidden]))) { display: none; }
+  body:not(.tv) .status { text-align: left; }
+  body:not(.tv) .controls, body:not(.tv) .react-bar { justify-content: flex-start; }
+}
+/* tonight's Game Night scoreboard, under a game's result */
+.night-line { margin: 0; padding: 8px 10px; border-radius: 12px; background: rgba(241, 187, 42, .1); border: 1px solid rgba(241, 187, 42, .35); font-size: 14px; color: var(--paper); line-height: 1.5; }
+.night-line .lbl { display: block; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--yellow); }
+.standings .face { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); font-size: 14px; font-weight: 800; align-self: center; }
+/* the champion, crowned when the night ends */
+.champ-dlg { text-align: center; align-items: center; position: relative; overflow: hidden; }
+.champ-dlg .crown { font-size: 64px; line-height: 1; margin-top: 4px; animation: crown-in .9s cubic-bezier(.2, 1.4, .4, 1) both; }
+.champ-face { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 46px; background: radial-gradient(circle, rgba(241, 187, 42, .5), rgba(241, 187, 42, .08)); box-shadow: 0 0 0 3px var(--yellow); }
+.champ-dlg .standings { width: 100%; text-align: left; }
+@keyframes crown-in { from { transform: translateY(-40px) scale(.3) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.confetti { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: confetti-fall linear forwards; pointer-events: none; }
+@keyframes confetti-fall { to { transform: translateY(560px) rotate(720deg); opacity: .2; } }
+/* ---------- TV mode: the table on a big screen for the whole room ---------- */
+.tv-side, .tv-wait { display: none; }
+body.tv { overflow: hidden; }
+body.tv .app { max-width: none; height: 100vh; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, 400px); grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "top side" "game side" "status side"; column-gap: 32px; row-gap: 10px; padding: 18px 28px; }
+body.tv .top { grid-area: top; }
+body.tv .top-tools > :not(.pill) { display: none; }
+body.tv .game { grid-area: game; width: 620px; justify-self: center; transform-origin: top center; }
+body.tv:not(.tv-live) .game { display: none; }
+body.tv .side-top, body.tv .controls, body.tv .react-bar, body.tv .assist { display: none !important; }
+body.tv .side-bottom { display: contents; }
+body.tv .status { grid-area: status; font-size: 26px; }
+body.tv #over-actions, body.tv #howto, body.tv #review { display: none !important; }
+body.tv .tv-side { grid-area: side; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
+body.tv:not(.tv-live) .tv-wait { grid-area: game; display: grid; place-items: center; text-align: center; }
+.tv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.tv-card h3 { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.tv-code { font-family: var(--font-display); font-size: clamp(34px, 3.6vw, 56px); letter-spacing: .16em; line-height: 1; }
+.tv-qr { background: #fff; border-radius: 12px; padding: 10px; align-self: center; width: min(100%, 220px); box-sizing: border-box; }
+.tv-qr svg, .tv-qr img { display: block; width: 100%; height: auto; }
+.tv-url { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.tv-people { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tv-people li { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+.tv-people li i { font-style: normal; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); font-size: 20px; flex: none; }
+.tv-people li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-people li b { font-family: var(--font-display); font-weight: 400; color: var(--yellow); }
+.tv-wait h2 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 4vw, 60px); }
+.tv-wait p { margin: 0; color: var(--muted); font-size: clamp(18px, 1.8vw, 26px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -226,32 +291,36 @@ button { touch-action: manipulation; }
     </div>
   </header>
 
+  <div class="side-top">
   <form class="join" id="join" autocomplete="off">
-    <div class="join-copy">
-      <h2>Join a game</h2>
-      <p>Type the 4-letter table code your friend sent you.</p>
-    </div>
-    <label>Table code<input class="field-input" id="join-code" maxlength="4" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="ABCD"></label>
-    <label>Your name<input class="field-input" id="join-name" maxlength="20" placeholder="Name"></label>
+    <span class="join-lead">Got a code?</span>
+    <input class="field-input" id="join-code" maxlength="4" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="CODE" aria-label="Table code">
+    <input class="field-input" id="join-name" maxlength="20" placeholder="Name" aria-label="Your name">
     <button class="btn primary" id="join-btn" type="submit">Join</button>
     <p class="join-note" id="join-note" aria-live="polite"></p>
   </form>
-
   <div class="banner" id="banner" hidden><p id="banner-text"></p><div class="banner-actions" id="banner-actions"></div></div>
   <div class="review-banner" id="preview-bar" hidden><p id="preview-text"></p><div class="row"><button class="btn small" id="preview-back" type="button">Back to review</button><button class="btn small primary" id="preview-done" type="button">Back to game</button></div></div>
+  </div>
 
+  <main class="game" id="game">
 <div class="bar" id="op-bar"><strong id="op-name">Computer</strong><span class="tag-turn" id="op-turn"></span></div>
   <div class="mc" id="mc" role="group" aria-label="Mancala board: tap one of your pits"></div>
 
   <div class="bar" id="me-bar"><strong id="me-name">You</strong><span class="tag-turn" id="me-turn"></span></div>
   <p class="mc-note" id="mc-note"></p>
+  </main>
 
+  <div class="side-bottom">
   <p class="status" id="status" aria-live="polite"></p>
 
   <div class="controls" id="controls">
     <button class="btn danger" id="btn-resign" type="button" hidden>Resign</button>
     <button class="btn" id="btn-new" type="button" hidden>New game</button></div>
   <div class="react-bar" id="react-bar" hidden></div>
+  </div>
+  <aside class="tv-side" id="tv-side" aria-label="Join this table"></aside>
+  <div class="tv-wait" id="tv-wait"><div><h2 id="tv-wait-title">Connecting…</h2><p id="tv-wait-sub"></p></div></div>
 </div>
 
 <div class="overlay" id="over" hidden>
@@ -260,6 +329,7 @@ button { touch-action: manipulation; }
     <h2 id="over-title"></h2>
     <ol class="standings" id="over-standings" hidden></ol>
     <p id="over-score"></p>
+    <p class="night-line" id="over-night" hidden></p>
     <p id="over-note" hidden></p>
     <div class="row" id="over-actions"></div>
   </div>
@@ -275,6 +345,18 @@ button { touch-action: manipulation; }
     <ul class="review-list" id="review-list"></ul>
     <p class="note" id="review-note"></p>
     <div class="row"><button class="btn" id="review-close" type="button">Close</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="champ" hidden>
+  <div class="dialog champ-dlg" role="dialog" aria-modal="true" aria-labelledby="champ-name">
+    <p class="eyebrow">Game Night champion</p>
+    <div class="crown" aria-hidden="true">👑</div>
+    <div class="champ-face" id="champ-face" aria-hidden="true"></div>
+    <h2 id="champ-name"></h2>
+    <p id="champ-pts"></p>
+    <ol class="standings" id="champ-rows"></ol>
+    <div class="row"><button class="btn primary" id="champ-close" type="button">Hooray!</button></div>
   </div>
 </div>
 
@@ -513,34 +595,64 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
-    {key: 'chess', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
-    {key: 'checkers', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
-    {key: 'connect4', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
-    {key: 'battleship', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
-    {key: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
-    {key: 'poker', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
-    {key: 'reversi', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
-    {key: 'mancala', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
-    {key: 'dots', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
-    {key: 'memory', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
-    {key: 'liarsdice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
-    {key: 'blackjack', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
-    {key: 'dominoes', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
-    {key: 'backgammon', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
-    {key: 'hearts', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
-    {key: 'gin', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
-    {key: 'imposters', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
-    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'},
-    {key: 'hangman', name: 'Hangman', kind: 'Guess the word, letter by letter', players: '1 to 6 players (computers can join)', ns: 'hangman', prefix: 'hangman-v1-', dir: 'hangman/', icon: 'hangman', color: '#64748b'},
-    {key: 'uttt', name: 'Ultimate Tic-Tac-Toe', kind: 'Tic-tac-toe inside tic-tac-toe', players: '2 players', ns: 'uttt', prefix: 'uttt-v1-', dir: 'uttt/', icon: 'uttt', color: '#4338ca'},
-    {key: 'scrabble', name: 'Scrabble', kind: 'Make words on the board', players: '2 to 4 players', ns: 'scrabble', prefix: 'scrabble-v1-', dir: 'scrabble/', icon: 'scrabble', color: '#c2410c'},
-    {key: 'pictionary', name: 'Pictionary', kind: 'Draw it, they guess it', players: '2 to 8 players (computers guess along)', ns: 'pictionary', prefix: 'pictionary-v1-', dir: 'pictionary/', icon: 'pictionary', color: '#c026d3'},
-    {key: 'taboo', name: 'Taboo', kind: 'Describe it without the taboo words', players: '2 to 8 players (computers can join)', ns: 'taboo', prefix: 'taboo-v1-', dir: 'taboo/', icon: 'taboo', color: '#e11d48'},
-    {key: 'wavelength', name: 'Wavelength', kind: 'Clue where it lands on the dial', players: '2 to 8 players (computers can join)', ns: 'wavelength', prefix: 'wavelength-v1-', dir: 'wavelength/', icon: 'wavelength', color: '#d97706'}
+    {key: 'uno', cat: 'cards', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', cat: 'board', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', cat: 'board', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', cat: 'board', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', cat: 'board', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', cat: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', cat: 'cards', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', cat: 'board', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', cat: 'board', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', cat: 'board', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', cat: 'board', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', cat: 'dice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', cat: 'cards', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', cat: 'dice', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', cat: 'board', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', cat: 'cards', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', cat: 'cards', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
+    {key: 'imposters', cat: 'party', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
+    {key: 'questions', cat: 'party', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'},
+    {key: 'hangman', cat: 'words', name: 'Hangman', kind: 'Guess the word, letter by letter', players: '1 to 6 players (computers can join)', ns: 'hangman', prefix: 'hangman-v1-', dir: 'hangman/', icon: 'hangman', color: '#64748b'},
+    {key: 'uttt', cat: 'board', name: 'Ultimate Tic-Tac-Toe', kind: 'Tic-tac-toe inside tic-tac-toe', players: '2 players', ns: 'uttt', prefix: 'uttt-v1-', dir: 'uttt/', icon: 'uttt', color: '#4338ca'},
+    {key: 'scrabble', cat: 'words', name: 'Scrabble', kind: 'Make words on the board', players: '2 to 4 players', ns: 'scrabble', prefix: 'scrabble-v1-', dir: 'scrabble/', icon: 'scrabble', color: '#c2410c'},
+    {key: 'pictionary', cat: 'party', name: 'Pictionary', kind: 'Draw it, they guess it', players: '2 to 8 players (computers guess along)', ns: 'pictionary', prefix: 'pictionary-v1-', dir: 'pictionary/', icon: 'pictionary', color: '#c026d3'},
+    {key: 'taboo', cat: 'party', name: 'Taboo', kind: 'Describe it without the taboo words', players: '2 to 8 players (computers can join)', ns: 'taboo', prefix: 'taboo-v1-', dir: 'taboo/', icon: 'taboo', color: '#e11d48'},
+    {key: 'wavelength', cat: 'party', name: 'Wavelength', kind: 'Clue where it lands on the dial', players: '2 to 8 players (computers can join)', ns: 'wavelength', prefix: 'wavelength-v1-', dir: 'wavelength/', icon: 'wavelength', color: '#d97706'},
+    {key: 'gofish', cat: 'cards', name: 'Go Fish', kind: 'Ask for cards, make books of four', players: '2 to 6 players (computers can join)', ns: 'gofish', prefix: 'gofish-v1-', dir: 'gofish/', icon: 'gofish', color: '#0284c7'},
+    {key: 'spades', cat: 'cards', name: 'Spades', kind: 'Partners bid and take tricks', players: '4 players in pairs (computers fill in)', ns: 'spades', prefix: 'spades-v1-', dir: 'spades/', icon: 'spades', color: '#475569'},
+    {key: 'wordgrid', cat: 'words', name: 'Word Grid', kind: 'Race to find words in the letters', players: '1 to 8 players (computers can join)', ns: 'wordgrid', prefix: 'wordgrid-v1-', dir: 'wordgrid/', icon: 'wordgrid', color: '#0d9488'},
+    {key: 'wordlink', cat: 'party', name: 'Word Link', kind: 'Team clues: link the gold words', players: '4 to 8 players in two teams (computers fill in)', ns: 'wordlink', prefix: 'wordlink-v1-', dir: 'wordlink/', icon: 'wordlink', color: '#4f46e5'}
   ];
 
-  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
+  // The hub's sections, in order.
+  const CATS = [['party', 'Party games'], ['cards', 'Card games'], ['words', 'Word games'], ['board', 'Board games'], ['dice', 'Dice and tiles']];
+
+  // ----- avatars: an emoji each person picks once (on the hub, or your home page), shown at every table -----
+  const AVATARS = ['😀', '😎', '🤠', '🥳', '🤓', '😺', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦄', '🐙', '🦖', '🐢', '🐧', '🦉', '🐝', '🦋', '🐳', '🦈',
+    '🍕', '🌮', '🍩', '🍉', '🌵', '🌻', '🍀', '🔥', '⭐', '🌙', '⚡', '🎸', '🎮', '🎲', '🏀', '⚽', '🚀', '👑', '👻', '👽', '🧙', '🧛', '🧜', '🐲'];
+  const CPU_FACE = '🤖';
+  const cleanAvatar = a => (typeof a === 'string' && (AVATARS.includes(a) || a === CPU_FACE) ? a : '');
+  const avatar = () => cleanAvatar(st.get('gamenight:avatar', ''));
+  const setAvatar = a => { if (AVATARS.includes(a)) st.set('gamenight:avatar', a); };
+  // A grid of emoji buttons; the chosen one is pressed.
+  function avatarPicker(el, onPick) {
+    const paint = () => { const cur = avatar(); el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.av === cur))); };
+    el.innerHTML = AVATARS.map(a => `<button type="button" data-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('');
+    el.addEventListener('click', e => { const b = e.target.closest('[data-av]'); if (!b) return; setAvatar(b.dataset.av); paint(); if (onPick) onPick(b.dataset.av); });
+    paint();
+  }
+
+  // ----- favorites and recently played, kept on this device -----
+  const known = k => GAMES.some(g => g.key === k);
+  const favs = () => { const f = st.get('gamenight:favs', []); return Array.isArray(f) ? f.filter(known) : []; };
+  function toggleFav(key) { const f = favs(); const i = f.indexOf(key); if (i >= 0) f.splice(i, 1); else if (known(key)) f.push(key); st.set('gamenight:favs', f); return i < 0; }
+  const recent = () => { const r = st.get('gamenight:recent', []); return Array.isArray(r) ? r.filter(known) : []; };
+  function markPlayed(key) { if (!known(key)) return; st.set('gamenight:recent', [key, ...recent().filter(k => k !== key)].slice(0, 8)); }
+
+  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES, CATS,
+    AVATARS, CPU_FACE, cleanAvatar, avatar, setAvatar, avatarPicker, favs, toggleFav, recent, markPlayed};
 })();
 
 </script>
@@ -958,6 +1070,8 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 const cleanName = n => String(n || '').replace(/[^\p{L}\p{N} '._-]/gu, '').trim().slice(0, 20);
 const SEATS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const isCpu = id => typeof id === 'string' && id.startsWith('cpu');
+// Computer players get names (and a robot avatar) in every game; a game can give them names of its own (G.cpuNames).
+const CPU_NAMES = ['Rosa', 'Milo', 'Juno', 'Otto', 'Pip', 'Wren', 'Zed'];
 const listNames = a => (a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
 const fmtPts = x => { const w = Math.floor(x + 1e-9), f = x - w; return f < 0.01 ? String(w) : Math.abs(f - 0.5) < 0.01 ? (w ? w : '') + '½' : x.toFixed(1); };
 let G = null;
@@ -970,7 +1084,9 @@ const App = {
   host: null,
   hostName: '',
   guest: {sid: rid(), n: 0, waitN: 0, msg: null, pending: null, view: null, lobby: null, hostName: 'Host', myName: '', old: false},
-  ui: {bannerKey: '', overKey: '', overDismissed: null, myTurn: false, endSound: null, reviewTab: '', reviewSet: null, preview: null}
+  ui: {bannerKey: '', overKey: '', overDismissed: null, myTurn: false, endSound: null, reviewTab: '', reviewSet: null, preview: null, played: false},
+  // A TV or laptop showing the table to the room (opened with ?tv): it watches, it doesn't play.
+  tv: new URLSearchParams(location.search).has('tv')
 };
 // Connection state. host: Net.info = {code, ready, p2p, relay, note}; guest: Net.state 'off' · 'connecting' · 'connected' · 'nohost' · 'lost'
 const Net = {state: 'off', note: '', code: '', link: null, conn: null, info: null};
@@ -981,7 +1097,9 @@ const liveCtx = () => ctxOf(App.mode);
 const fullState = () => { const c = liveCtx(); return c ? c.s : null; };
 
 // ---------- views ----------
-function who(v, seat) { return seat === v.you ? 'You' : (v.names && v.names[seat]) || 'Player'; }
+function who(v, seat) { return seat === v.you && !App.tv ? 'You' : (v.names && v.names[seat]) || 'Player'; }
+// A player's avatar (or their initial when they haven't picked one), as markup for a little round badge.
+function face(v, seat) { const a = v && v.avatars && v.avatars[seat]; return a ? esc(a) : esc(((v && v.names && v.names[seat]) || '?').slice(0, 1).toUpperCase()); }
 function decorate(v, ctx, seat) {
   const s = ctx.s;
   v.gid = s.gid;
@@ -989,6 +1107,8 @@ function decorate(v, ctx, seat) {
   v.seats = s.seats.slice();
   v.names = {...s.names};
   v.cpu = s.seats.filter(x => isCpu(s.ids[x]));
+  v.avatars = {};
+  for (const x of s.seats) { const a = isCpu(s.ids[x]) ? Kit.CPU_FACE : Kit.cleanAvatar(s.avatars && s.avatars[x]); if (a) v.avatars[x] = a; }
   v.sc = s.seats.map(x => ({seat: x, w: ctx.score[s.ids[x]] || 0}));
   v.over = !!G.over(s);
   v.ranks = v.over ? G.ranks(s) || {} : null;
@@ -1030,6 +1150,7 @@ function applyAct(s, seat, a) {
   return r;
 }
 function act(a) {
+  if (!App.ui.played) { App.ui.played = true; Kit.markPlayed(G.key); }
   if (App.mode === 'guest') {
     const g = App.guest;
     if (!g.view || !interactive()) return;
@@ -1089,7 +1210,7 @@ function tally() {
     const top = placed.filter(x => ranks[x] === best);
     // Winners split the point, except in team games (G.teamScore), where everyone on the winning side gets one.
     for (const x of top) ctx.score[s.ids[x]] = (ctx.score[s.ids[x]] || 0) + (G.teamScore ? 1 : 1 / top.length);
-    if (ctx === App.host) Role.recordGame(s, ranks);
+    if (ctx === App.host) { Role.recordGame(s, ranks); Role.recordNight(s, ranks); }
   }
 }
 function save() {
@@ -1111,32 +1232,34 @@ function pickFirst(ctx, seats) {
   ctx.firstIdx = (ctx.firstIdx || 0) + 1;
   return seats[i];
 }
-function newGameFor(ctx, seats, ids, names) {
+function newGameFor(ctx, seats, ids, names, avatars) {
   const s = G.newGame({seats, first: pickFirst(ctx, seats), settings: App.settings, ids});
   s.gid = rid();
   s.seats = seats.slice();
   s.ids = ids;
   s.names = names;
+  s.avatars = avatars || {};
   s.v = 0;
   return s;
 }
 // A game can give its computer players names of their own (G.cpuNames).
-const cpuName = (i, n) => (G && G.cpuNames ? G.cpuNames[i % G.cpuNames.length] : n > 1 ? `Computer ${i + 1}` : 'Computer');
+const cpuName = i => (G && G.cpuNames ? G.cpuNames[i % G.cpuNames.length] : CPU_NAMES[([...String(G && G.key)].reduce((t, c) => t + c.charCodeAt(0), 0) + i) % CPU_NAMES.length]);
 // A fresh practice game against the computer (doesn't switch to it).
-// How many computer players a practice game gets: G.exactSeats fixes the table size, G.minSeats 1 allows playing alone.
+// How many computer players a practice game gets: G.exactSeats fixes the table size, G.minSeats 1 allows playing alone,
+// G.minPlayers is the fewest the game works with (computers make up the rest).
 function soloOthers() {
   if (G.exactSeats) return G.exactSeats - 1;
   const want = Number(ROLE === 'host' ? App.settings.cpus : (G.soloCpus ?? 1));
-  const least = G.minSeats === 1 ? 0 : 1;
+  const least = Math.max(G.minSeats === 1 ? 0 : 1, (G.minPlayers || 0) - 1);
   return Math.max(least, Math.min(G.maxPlayers - 1, Number.isFinite(want) ? want : 1));
 }
 function newSoloGame() {
   const S = App.solo;
   const n = soloOthers();
   const seats = SEATS.slice(0, 1 + n);
-  const ids = {A: 'me'}, names = {A: (ROLE === 'host' ? App.hostName : App.guest.myName) || 'You'};
-  seats.slice(1).forEach((x, i) => { ids[x] = 'cpu' + (i + 1); names[x] = cpuName(i, n); });
-  S.s = newGameFor(S, seats, ids, names);
+  const ids = {A: 'me'}, names = {A: (ROLE === 'host' ? App.hostName : App.guest.myName) || 'You'}, avatars = {A: Kit.avatar()};
+  seats.slice(1).forEach((x, i) => { ids[x] = 'cpu' + (i + 1); names[x] = cpuName(i); avatars[x] = Kit.CPU_FACE; });
+  S.s = newGameFor(S, seats, ids, names, avatars);
 }
 function dealSolo() {
   App.mode = 'solo';
@@ -1159,6 +1282,7 @@ function backToSolo() {
 // ---------- computer players: whoever's turn it is, if that seat is a computer ----------
 const Bot = {key: ''};
 function botUpdate() {
+  if (App.tv) return;
   const ctx = liveCtx(), s = ctx && ctx.s;
   if (!s || G.over(s)) return;
   const seat = (G.waiting(s) || []).find(x => isCpu(s.ids[x]));
@@ -1186,7 +1310,7 @@ function botUpdate() {
 
 // ---------- timed steps (a dealer's turn, a pause to show a trick): the page running the game moves them on ----------
 setInterval(() => {
-  if (!G || !G.tick || App.mode === 'guest') return;
+  if (!G || !G.tick || App.mode === 'guest' || App.tv) return;
   const ctx = liveCtx(), s = ctx && ctx.s;
   if (!s || G.over(s)) return;
   let changed = false;
@@ -1293,7 +1417,7 @@ function playerJoin(code) {
       Net.state = 'connected';
       Net.note = '';
       conn.on('data', playerOnData);
-      conn.send({type: 'hello', proto: G.proto, name: App.guest.myName || 'Friend', sid: App.guest.sid, dev: Kit.deviceId()});
+      conn.send({type: 'hello', proto: G.proto, name: App.guest.myName || 'Friend', sid: App.guest.sid, dev: Kit.deviceId(), av: Kit.avatar(), ...(App.tv ? {tv: true} : {})});
       if (App.guest.waitN && App.guest.msg) conn.send(App.guest.msg);
       render();
     },
@@ -1307,16 +1431,27 @@ function playerJoin(code) {
   });
   render();
 }
+// Tonight's scoreboard as the host's table sent it.
+function cleanNight(n) {
+  if (!n || typeof n !== 'object' || !Array.isArray(n.rows)) return null;
+  const num = x => (Number.isFinite(x) ? Math.max(0, Math.min(9999, Math.round(x))) : 0);
+  const rows = n.rows.slice(0, 8).map(r => ({name: cleanName(r && r.name) || 'Player', avatar: Kit.cleanAvatar(r && r.avatar), pts: num(r && r.pts)}));
+  const c = n.champ && typeof n.champ === 'object' && Array.isArray(n.champ.names) ? {names: n.champ.names.slice(0, 4).map(x => cleanName(x) || 'Player'), avatar: Kit.cleanAvatar(n.champ.avatar), pts: num(n.champ.pts)} : null;
+  return {id: String(n.id || '').replace(/[^a-z0-9]/g, '').slice(0, 12), games: num(n.games), rows, champ: c};
+}
 // The framework's part of a view; the game checks its own fields in G.cleanView.
 function cleanBase(g) {
   if (!g || typeof g !== 'object' || typeof g.gid !== 'string' || g.gid.length > 24) return false;
   if (!Array.isArray(g.seats) || g.seats.length < 1 || g.seats.length > SEATS.length || !g.seats.every(x => SEATS.includes(x))) return false;
-  if (!g.seats.includes(g.you)) return false;
+  if (!g.seats.includes(g.you) && !(App.tv && g.you === null)) return false;
   const names = {};
   for (const x of g.seats) names[x] = cleanName(g.names && g.names[x]) || 'Player';
   g.names = names;
   const seatList = a => (Array.isArray(a) ? a.filter(x => g.seats.includes(x)) : []);
   g.cpu = seatList(g.cpu);
+  const av = {};
+  for (const x of g.seats) { const a = Kit.cleanAvatar(g.avatars && g.avatars[x]); if (a) av[x] = a; }
+  g.avatars = av;
   g.away = seatList(g.away);
   g.sc = Array.isArray(g.sc) ? g.sc.filter(x => x && g.seats.includes(x.seat)).map(x => ({seat: x.seat, w: Math.max(0, Number(x.w) || 0)})) : [];
   g.act = !!g.act;
@@ -1339,7 +1474,9 @@ function playerOnData(msg) {
   P.old = msg.proto !== G.proto;
   P.hostName = cleanName(msg.host) || 'Host';
   const L = msg.lobby;
-  P.lobby = L && typeof L === 'object' ? {players: Array.isArray(L.players) ? L.players.slice(0, 5).map(cleanName) : [], playing: !!L.playing} : null;
+  P.lobby = L && typeof L === 'object' ? {players: Array.isArray(L.players) ? L.players.slice(0, 9).map(cleanName) : [], faces: Array.isArray(L.faces) ? L.faces.slice(0, 9).map(Kit.cleanAvatar) : [], playing: !!L.playing} : null;
+  P.night = cleanNight(msg.night);
+  if (typeof msg.code === 'string' && /^[A-Z]{4}$/.test(msg.code)) P.code = msg.code;
   const g = msg.g;
   let ok = false;
   try { ok = cleanBase(g) && G.cleanView(g); } catch (e) { console.error(e); ok = false; }
@@ -1387,6 +1524,63 @@ $('join').addEventListener('submit', e => {
   playerJoin($('join-code').value);
 });
 
+// ---------- TV mode: this page shows a friend's table to the whole room (opened with ?tv) ----------
+const TV = {
+  key: '', qrLoading: false,
+  start(code) {
+    document.body.classList.add('tv');
+    App.guest.myName = 'TV';
+    TV.loadQr();
+    if (code) playerJoin(code);
+    else Net.note = 'Open the TV link from the host’s table (Table settings, then Show on a TV).';
+    window.addEventListener('resize', () => TV.fit());
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch {}
+  },
+  // The site's root (where qr.js lives), from the "all games" link.
+  root() { return new URL('../', new URL($('home-link').getAttribute('href'), location.href)).href; },
+  // The link friends scan: this game's player page with the table code.
+  joinUrl() { const q = new URLSearchParams(location.search); q.delete('tv'); const qs = q.toString(); return new URL('./', location.href).href + (qs ? '?' + qs : '') + '#' + (App.guest.code || Net.code); },
+  loadQr() {
+    if (window.qrcode || TV.qrLoading) return;
+    TV.qrLoading = true;
+    const sc = document.createElement('script');
+    sc.src = TV.root() + 'qr.js';
+    sc.onload = () => { TV.key = ''; render(); };
+    document.head.append(sc);
+  },
+  qr(url) { if (!window.qrcode) return ''; try { const q = qrcode(0, 'M'); q.addData(url); q.make(); return q.createSvgTag({cellSize: 4, margin: 0, scalable: true}); } catch { return ''; } },
+  render(v) {
+    const P = App.guest, live = App.mode === 'guest' && !!v, host = P.hostName || 'Host', code = P.code || Net.code;
+    document.body.classList.toggle('tv-live', live);
+    const who2 = live ? v.seats.map(x => ({face: face(v, x), name: who(v, x), w: (v.sc.find(y => y.seat === x) || {}).w || 0}))
+      : P.lobby ? P.lobby.players.map((n, i) => ({face: esc(P.lobby.faces[i] || (n || '?').slice(0, 1).toUpperCase()), name: n, w: null})) : [];
+    const night = P.night, url = TV.joinUrl();
+    const key = JSON.stringify([live, code, who2, night, !!window.qrcode, Net.state, host, P.lobby && P.lobby.playing]);
+    if (key !== TV.key) {
+      TV.key = key;
+      const short = url.replace(/^https?:\/\//, '').replace(/[?#].*$/, '');
+      $('tv-side').innerHTML = `<div class="tv-card"><h3>Join this table</h3>${window.qrcode ? `<div class="tv-qr">${TV.qr(url)}</div>` : ''}<div class="tv-code">${esc(code || '····')}</div><div class="tv-url">Scan it, or open ${esc(short)} and type the code.</div></div>`
+        + (who2.length ? `<div class="tv-card"><h3>${live ? 'Playing now' : `At ${esc(host)}’s table`}</h3><ul class="tv-people">${who2.map(p => `<li><i>${p.face}</i><span>${esc(p.name)}</span>${p.w != null ? `<b>${fmtPts(p.w)}</b>` : ''}</li>`).join('')}</ul></div>` : '')
+        + (night && night.rows.length ? `<div class="tv-card"><h3>Game Night · ${night.games} game${night.games === 1 ? '' : 's'}</h3><ul class="tv-people">${night.rows.slice(0, 6).map((r, i) => `<li><i>${esc(r.avatar || r.name.slice(0, 1).toUpperCase())}</i><span>${i === 0 && r.pts ? '👑 ' : ''}${esc(r.name)}</span><b>${r.pts}</b></li>`).join('')}</ul></div>` : '');
+      $('tv-wait-title').textContent = Net.state === 'connected' ? (P.lobby && P.lobby.playing ? 'A game is on…' : `Waiting for ${host} to start a game`) : Net.state === 'nohost' ? 'Waiting for the table to open' : 'Connecting…';
+      $('tv-wait-sub').textContent = Net.state === 'connected' ? 'Scan the code to join from your phone.' : Net.note || '';
+    }
+    TV.fit();
+  },
+  // The game is laid out for a phone: scale it up to fill the screen beside the panel.
+  fit() {
+    if (!document.body.classList.contains('tv-live')) return;
+    requestAnimationFrame(() => {
+      const g = $('game');
+      g.style.zoom = '1';
+      const top = g.getBoundingClientRect().top, below = $('status').offsetHeight + 40;
+      const availH = innerHeight - top - below, availW = $('tv-side').getBoundingClientRect().left - 70;
+      const z = Math.max(0.6, Math.min(2.6, availH / Math.max(240, g.scrollHeight), availW / 620));
+      g.style.zoom = z.toFixed(3);
+    });
+  }
+};
+
 const Role = {
   live() {},
   start() {
@@ -1395,6 +1589,7 @@ const Role = {
     const code = codeFromLink() || j.code || '';
     $('join-name').value = App.guest.myName;
     $('join-code').value = code;
+    if (App.tv) { TV.start(code); return; }
     if (code && App.guest.myName) playerJoin(code);
     else if (code) Net.note = 'Type your name and tap Join.';
   },
@@ -1402,6 +1597,8 @@ const Role = {
   publish() {},
   awaySeats() { return []; },
   recordGame() {},
+  recordNight() {},
+  night() { return App.guest.night || null; },
   pill() {
     const host = App.guest.hostName || 'Host';
     switch (Net.state) {
@@ -1448,13 +1645,14 @@ const Role = {
   },
   hasPeople() { return Net.state === 'connected'; },
   react(e) { Kit.showReaction(e, 'You'); try { Net.conn && Net.conn.send({type: 'react', e}); } catch {} },
-  extra() {
-    const joinVisible = App.mode !== 'guest' && Net.state !== 'connected';
+  extra(v) {
+    const joinVisible = App.mode !== 'guest' && Net.state !== 'connected' && !App.tv;
     $('join').hidden = !joinVisible;
     const btn = $('join-btn');
     btn.disabled = Net.state === 'connecting';
     btn.textContent = Net.state === 'connecting' ? 'Joining…' : Net.state === 'nohost' || Net.state === 'lost' ? 'Try again' : 'Join';
-    $('join-note').textContent = Net.state === 'connecting' ? 'Connecting…' : Net.note || 'Until then, practice against the computer below.';
+    $('join-note').textContent = Net.state === 'connecting' ? 'Connecting…' : Net.note || '';
+    if (App.tv) TV.render(v);
   },
   wake() { Net.link && Net.link.wake(); },
   escape() { return false; },
@@ -1470,6 +1668,7 @@ function render() {
   try { G.render(v); } catch (e) { console.error(e); }
   renderStatus(v);
   renderOver(v);
+  renderChamp();
   $('react-bar').hidden = !Role.hasPeople();
   turnAlerts(v);
 }
@@ -1479,17 +1678,13 @@ function turnAlerts(v) {
   if (mine && !App.ui.myTurn) Kit.alertTurn(G.turnMessage ? G.turnMessage(v) : 'Your turn!');
   App.ui.myTurn = mine;
 }
+// Everyone at the table on one line: their avatar, name and games won (the leader's count turns gold).
 function renderTop(v) {
   const el = $('score');
-  let html = '';
   const sc = v && v.sc ? v.sc : [];
-  if (sc.length === 2) {
-    const me = sc.find(x => x.seat === v.you) || sc[0], op = sc.find(x => x !== me) || sc[1];
-    html = `<span>You</span><b>${fmtPts(me.w)}</b><span class="sep">–</span><b>${fmtPts(op.w)}</b><span class="who">${esc(who(v, op.seat))}</span>`;
-  } else if (sc.length > 2) {
-    html = sc.map(x => `<span class="who">${esc(who(v, x.seat))}</span><b>${fmtPts(x.w)}</b>`).join('<span class="sep">·</span>');
-  }
-  el.innerHTML = html;
+  const best = Math.max(0, ...sc.map(x => x.w));
+  const html = sc.map(x => `<span class="tchip${x.seat === v.you && !App.tv ? ' me' : ''}${best > 0 && x.w === best ? ' lead' : ''}" title="Games won"><i>${face(v, x.seat)}</i><span class="who">${esc(who(v, x.seat))}</span><b>${fmtPts(x.w)}</b></span>`).join('');
+  if (el.innerHTML !== html) el.innerHTML = html;
   el.hidden = !html;
   const p = Role.pill();
   $('pill').classList.toggle('on', p.on);
@@ -1520,6 +1715,7 @@ function renderStatus(v) {
   else if (v.previewing) { text = 'Reviewing'; wait = true; }
   else if (App.mode === 'guest' && App.guest.waitN) { text = 'Sending…'; wait = true; }
   else if (App.mode === 'guest' && Net.state !== 'connected') { text = 'Reconnecting…'; wait = true; }
+  else if (App.tv && !v.over && v.turn && v.seats.includes(v.turn)) text = `${who(v, v.turn)}’s turn`;
   else { const st = G.status(v) || {}; text = st.text || ''; wait = !!st.wait; }
   const el = $('status');
   el.textContent = text;
@@ -1531,7 +1727,8 @@ function renderOver(v) {
   if (!show) { el.hidden = true; App.ui.overKey = ''; return; }
   const note = Role.overNote();
   const rv = v.review ? JSON.stringify(v.review).length : 0;
-  const key = `${v.gid}|${App.mode}|${Role.hasPeople()}|${note}|${!!v.asked}|${rv}|${Role.reviewSets().length}|${JSON.stringify(v.sc)}|${ROLE === 'host' ? Review.state + Review.progress : ''}`;
+  const nightKey = JSON.stringify(Role.night());
+  const key = `${v.gid}|${App.mode}|${Role.hasPeople()}|${note}|${!!v.asked}|${rv}|${Role.reviewSets().length}|${JSON.stringify(v.sc)}|${ROLE === 'host' ? Review.state + Review.progress : ''}|${nightKey}`;
   el.hidden = false;
   if (key === App.ui.overKey) return;
   App.ui.overKey = key;
@@ -1546,10 +1743,13 @@ function renderOver(v) {
   const st = $('over-standings');
   st.hidden = !(rows && rows.length);
   if (rows && rows.length) {
-    st.innerHTML = rows.map(r => `<li class="${r.seat === v.you ? 'me' : ''}"><span class="rank">${esc(r.rank)}</span><span class="nm">${esc(who(v, r.seat))}</span><span class="pts">${esc(r.pts)}</span></li>`).join('');
+    st.innerHTML = rows.map(r => `<li class="${r.seat === v.you ? 'me' : ''}"><span class="rank">${esc(r.rank)}</span><span class="face">${face(v, r.seat)}</span><span class="nm">${esc(who(v, r.seat))}</span><span class="pts">${esc(r.pts)}</span></li>`).join('');
   }
   const sc = v.sc || [];
   $('over-score').textContent = sc.length ? 'Games won: ' + sc.map(x => `${who(v, x.seat)} ${fmtPts(x.w)}`).join(', ') : '';
+  const night = App.mode === 'solo' ? null : Role.night();
+  $('over-night').hidden = !(night && night.rows && night.rows.length && !night.champ);
+  if (night && !night.champ) $('over-night').innerHTML = nightLine(night);
   const noteEl = $('over-note');
   noteEl.hidden = !note;
   noteEl.textContent = note;
@@ -1569,6 +1769,35 @@ function renderOver(v) {
   add(G.seeLabel || 'See the board', () => { App.ui.overDismissed = v.gid; App.ui.bannerKey = ''; render(); });
 }
 function closeOverlays() { $('review').hidden = true; $('howto').hidden = true; Role.closeAll(); }
+// Tonight's scoreboard on one line: "👑 🦊 Ana 9 · 😀 Ethan 6 · Ben 3".
+function nightLine(n) {
+  const rows = n.rows.slice(0, 6);
+  return `<span class="lbl">Game Night · ${n.games} game${n.games === 1 ? '' : 's'} tonight</span>` + rows.map((r, i) => `${i === 0 && r.pts > 0 ? '👑 ' : ''}${r.avatar ? esc(r.avatar) + ' ' : ''}${esc(r.name)} <b>${r.pts}</b>`).join(' · ') + (n.rows.length > rows.length ? ' · …' : '');
+}
+// When the host ends the night, every table (and TV) crowns the champion once.
+function renderChamp() {
+  const n = Role.night();
+  const el = $('champ');
+  if (!n || !n.champ || !n.id || store.get('gamenight:champseen', '') === n.id) { el.hidden = true; return; }
+  if (!el.hidden) return;
+  const c = n.champ;
+  $('champ-face').textContent = c.avatar || '🏆';
+  $('champ-name').textContent = c.names.length > 1 ? `${listNames(c.names)} share the crown!` : `${c.names[0]} is tonight’s champion!`;
+  $('champ-pts').textContent = `${c.pts} points from ${n.games} game${n.games === 1 ? '' : 's'}.`;
+  $('champ-rows').innerHTML = n.rows.map((r, i) => `<li><span class="rank">${i + 1}</span><span class="face">${esc(r.avatar || r.name.slice(0, 1).toUpperCase())}</span><span class="nm">${esc(r.name)}</span><span class="pts">${r.pts} pts</span></li>`).join('');
+  const dlg = el.querySelector('.dialog');
+  dlg.querySelectorAll('.confetti').forEach(x => x.remove());
+  const colors = ['#f1bb2a', '#e2463c', '#2f6ad1', '#2f9d58', '#d946ef', '#f5efe3'];
+  for (let i = 0; i < 36; i++) {
+    const c2 = document.createElement('span');
+    c2.className = 'confetti';
+    c2.style.cssText = `left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * 1.2}s`;
+    dlg.append(c2);
+  }
+  el.hidden = false;
+  Kit.play('win');
+}
+$('champ-close').addEventListener('click', () => { const n = Role.night(); if (n && n.id) store.set('gamenight:champseen', n.id); $('champ').hidden = true; });
 let toastTimer = 0;
 function toast(msg) {
   const t = $('toast');
@@ -1671,6 +1900,7 @@ function mcFinish(s) {
 
 const PS = {
   key: 'mancala', name: 'Mancala', kind: 'Mancala', ns: 'pitstop', prefix: 'pitstop-v1-', proto: 1, version: 1,
+  tv: 'seat',
   maxPlayers: 2, soloCpus: 1, settings: {seeds: 4},
   newGame({seats, first, settings}) {
     const seeds = [3, 4, 6].includes(Number(settings.seeds)) ? Number(settings.seeds) : 4;

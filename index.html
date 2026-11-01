@@ -65,9 +65,14 @@ button { touch-action: manipulation; }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 20px; letter-spacing: .02em; }
 .gem { width: 13px; height: 13px; border-radius: 3px; transform: rotate(45deg);
   background: conic-gradient(var(--red) 0 25%, var(--yellow) 0 50%, var(--green) 0 75%, var(--blue) 0); }
-.score { display: flex; align-items: baseline; gap: 8px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 0; flex-wrap: wrap; }
-.score b { font-family: var(--font-display); font-weight: 400; font-size: 18px; color: var(--paper); }
-.score .dash { color: var(--line); }
+.score { order: 3; flex: 1 1 100%; display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; font-variant-numeric: tabular-nums; }
+.score::-webkit-scrollbar { display: none; }
+.tchip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.tchip i { font-style: normal; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); color: var(--paper); font-size: 14px; font-weight: 800; line-height: 1; }
+.tchip .who { max-width: 7.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tchip b { font-family: var(--font-display); font-weight: 400; font-size: 14px; color: var(--paper); }
+.tchip.me { border-color: rgba(245, 239, 227, .55); color: var(--paper); }
+.tchip.lead b { color: var(--yellow); }
 .top-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--muted); white-space: nowrap; }
 .pill i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
@@ -101,15 +106,25 @@ button { touch-action: manipulation; }
 .banner p { margin: 0; flex: 1 1 280px; min-width: 0; text-wrap: pretty; }
 .banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .code { font-family: var(--font-display); font-weight: 400; letter-spacing: .14em; padding: 2px 8px; border-radius: 6px; background: var(--ink); color: var(--paper); white-space: nowrap; }
-.join { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
-.join-copy { flex: 1 1 100%; }
-.join h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 20px; }
-.join-copy p { margin: 4px 0 0; color: var(--muted); }
-.join label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); flex: 1 1 150px; min-width: 0; }
+/* One slim line: "Got a code? [ABCD] [your name] Join". The practice game sits right under it. */
+.join { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 7px 7px 7px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.join-lead { font-weight: 700; font-size: 14px; white-space: nowrap; }
 .field-input { box-sizing: border-box; width: 100%; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--ink); color: var(--paper); font-weight: 600; font-size: 16px; }
 .field-input:focus { border-color: var(--paper); outline: none; }
-#join-code { font-family: var(--font-display); font-weight: 400; letter-spacing: .2em; text-transform: uppercase; }
-.join-note { flex-basis: 100%; margin: 0; min-height: 18px; font-size: 13px; color: var(--muted); }
+.join .field-input { width: auto; padding: 7px 10px; }
+#join-code { flex: 0 0 74px; font-family: var(--font-display); font-weight: 400; letter-spacing: .14em; text-transform: uppercase; text-align: center; }
+#join-name { flex: 1 1 80px; }
+/* small phones: keep the join bar on one line */
+@media (max-width: 380px) { .join-lead { font-size: 13px; } #join-code { flex-basis: 66px; letter-spacing: .06em; padding-left: 6px; padding-right: 6px; } #join-name { flex-basis: 52px; } .join .btn { padding: 7px 12px; } }
+@media (max-width: 340px) { .join-lead { display: none; } }
+.join .btn { padding: 7px 15px; }
+.join-note { flex-basis: 100%; margin: 0 7px 2px 0; font-size: 13px; color: var(--muted); }
+.join-note:empty { display: none; }
+/* how to play */
+.dialog { max-height: 100%; overflow-y: auto; }
+.rules-body { color: var(--paper); font-size: 15px; display: flex; flex-direction: column; gap: 10px; }
+.rules-body p, .rules-body li { color: var(--paper); margin: 0; }
+.rules-body ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 
 /* ---------- seats ---------- */
 .opps { display: flex; justify-content: center; gap: 10px; }
@@ -320,20 +335,17 @@ button { touch-action: manipulation; }
     <div class="score" id="score" aria-label="Score"></div>
     <div class="top-tools">
       <span class="pill" id="pill"><i></i><span id="pill-text"></span></span>
-      <button class="btn small" id="btn-new" type="button">New hand</button>
       <button class="icon-btn" id="mute" type="button"></button>
+      <button class="icon-btn" id="howto-btn" type="button" aria-label="How to play" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg></button>
       <a class="home-link" id="home-link" href="play/" aria-label="All games" title="All games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></a>
 
     </div>
   </header>
 
   <form class="join" id="join" autocomplete="off">
-    <div class="join-copy">
-      <h2>Join a table</h2>
-      <p>Type the 4-letter table code your friend sent you.</p>
-    </div>
-    <label>Table code<input class="field-input" id="join-code" maxlength="4" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="ABCD"></label>
-    <label>Your name<input class="field-input" id="join-name" maxlength="20" placeholder="Name"></label>
+    <span class="join-lead">Got a code?</span>
+    <input class="field-input" id="join-code" maxlength="4" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="CODE" aria-label="Table code">
+    <input class="field-input" id="join-name" maxlength="20" placeholder="Name" aria-label="Your name">
     <button class="btn primary" id="join-btn" type="submit">Join</button>
     <p class="join-note" id="join-note" aria-live="polite"></p>
   </form>
@@ -368,6 +380,7 @@ button { touch-action: manipulation; }
     <button class="btn primary" id="btn-keep" type="button" hidden>Keep it</button>
     <button class="btn uno" id="btn-uno" type="button">UNO!</button>
     <button class="btn catch" id="btn-catch" type="button" hidden>Catch</button>
+    <button class="btn" id="btn-new" type="button">New hand</button>
     <p class="hint" id="hint" aria-live="polite"></p>
   </div>
   <div class="react-bar" id="react-bar" hidden></div>
@@ -383,6 +396,24 @@ button { touch-action: manipulation; }
       <button class="sw c-B" type="button" data-col="B">Blue</button>
     </div>
     <div class="row"><button class="btn" id="picker-cancel" type="button">Cancel</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="howto" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="howto-title">
+    <p class="eyebrow">How to play</p>
+    <h2 id="howto-title">UNO</h2>
+    <div class="rules-body">
+      <p>Be the first to get rid of all your cards.</p>
+      <ul>
+        <li>On your turn, play a card that matches the top card’s <b>color</b>, <b>number</b> or <b>symbol</b>. Wild cards go on anything and you pick the next color.</li>
+        <li>Can’t play (or don’t want to)? Draw a card. If it fits, you can play it or keep it.</li>
+        <li><b>Skip</b> skips the next player, <b>Reverse</b> turns play around (with two players it works like Skip), <b>+2</b> and <b>Wild +4</b> make the next player draw and miss their turn.</li>
+        <li>Down to one card? Tap <b>UNO!</b> before anyone notices. If someone taps <b>Catch</b> first, you draw two.</li>
+        <li>First to play their last card wins the hand.</li>
+      </ul>
+    </div>
+    <div class="row"><button class="btn primary" id="howto-close" type="button">Got it</button></div>
   </div>
 </div>
 
@@ -616,34 +647,64 @@ const Kit = (() => {
 
   // ----- every game on the site: key, name, where its pages live, and its connection prefix -----
   const GAMES = [
-    {key: 'uno', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
-    {key: 'chess', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
-    {key: 'checkers', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
-    {key: 'connect4', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
-    {key: 'battleship', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
-    {key: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
-    {key: 'poker', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
-    {key: 'reversi', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
-    {key: 'mancala', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
-    {key: 'dots', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
-    {key: 'memory', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
-    {key: 'liarsdice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
-    {key: 'blackjack', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
-    {key: 'dominoes', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
-    {key: 'backgammon', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
-    {key: 'hearts', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
-    {key: 'gin', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
-    {key: 'imposters', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
-    {key: 'questions', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'},
-    {key: 'hangman', name: 'Hangman', kind: 'Guess the word, letter by letter', players: '1 to 6 players (computers can join)', ns: 'hangman', prefix: 'hangman-v1-', dir: 'hangman/', icon: 'hangman', color: '#64748b'},
-    {key: 'uttt', name: 'Ultimate Tic-Tac-Toe', kind: 'Tic-tac-toe inside tic-tac-toe', players: '2 players', ns: 'uttt', prefix: 'uttt-v1-', dir: 'uttt/', icon: 'uttt', color: '#4338ca'},
-    {key: 'scrabble', name: 'Scrabble', kind: 'Make words on the board', players: '2 to 4 players', ns: 'scrabble', prefix: 'scrabble-v1-', dir: 'scrabble/', icon: 'scrabble', color: '#c2410c'},
-    {key: 'pictionary', name: 'Pictionary', kind: 'Draw it, they guess it', players: '2 to 8 players (computers guess along)', ns: 'pictionary', prefix: 'pictionary-v1-', dir: 'pictionary/', icon: 'pictionary', color: '#c026d3'},
-    {key: 'taboo', name: 'Taboo', kind: 'Describe it without the taboo words', players: '2 to 8 players (computers can join)', ns: 'taboo', prefix: 'taboo-v1-', dir: 'taboo/', icon: 'taboo', color: '#e11d48'},
-    {key: 'wavelength', name: 'Wavelength', kind: 'Clue where it lands on the dial', players: '2 to 8 players (computers can join)', ns: 'wavelength', prefix: 'wavelength-v1-', dir: 'wavelength/', icon: 'wavelength', color: '#d97706'}
+    {key: 'uno', cat: 'cards', name: 'UNO', kind: 'Match colors and numbers', players: '2 to 4 players', ns: 'wilddraw', prefix: 'wilddraw-v1-', dir: '', icon: 'uno', color: '#e2463c'},
+    {key: 'chess', cat: 'board', name: 'Chess', kind: 'The classic strategy game', players: '2 players', ns: 'backrank', prefix: 'backrank-v1-', dir: 'chess/', icon: 'chess', color: '#a27c5f'},
+    {key: 'checkers', cat: 'board', name: 'Checkers', kind: 'Jump pieces and get kinged', players: '2 players', ns: 'kingme', prefix: 'kingme-v1-', dir: 'checkers/', icon: 'checkers', color: '#3f6f4b'},
+    {key: 'connect4', cat: 'board', name: 'Connect Four', kind: 'Four in a row wins', players: '2 players', ns: 'dropfour', prefix: 'dropfour-v1-', dir: 'connect4/', icon: 'connect4', color: '#2456b8'},
+    {key: 'battleship', cat: 'board', name: 'Battleship', kind: 'Find and sink the fleet', players: '2 players', ns: 'broadside', prefix: 'broadside-v1-', dir: 'battleship/', icon: 'battleship', color: '#1d4f80'},
+    {key: 'dice', cat: 'dice', name: 'Yahtzee', kind: 'Roll five dice, fill your score sheet', players: '2 to 4 players', ns: 'snakeeyes', prefix: 'snakeeyes-v1-', dir: 'dice/', icon: 'dice', color: '#2a6a45'},
+    {key: 'poker', cat: 'cards', name: 'Texas Hold’em', kind: 'Poker', players: '2 to 4 players', ns: 'allin', prefix: 'allin-v1-', dir: 'poker/', icon: 'poker', color: '#b8281f'},
+    {key: 'reversi', cat: 'board', name: 'Reversi', kind: 'Also called Othello', players: '2 players', ns: 'flipside', prefix: 'flipside-v1-', dir: 'reversi/', icon: 'reversi', color: '#1f7a4a'},
+    {key: 'mancala', cat: 'board', name: 'Mancala', kind: 'Sow the stones into your store', players: '2 players', ns: 'pitstop', prefix: 'pitstop-v1-', dir: 'mancala/', icon: 'mancala', color: '#8a5a2b'},
+    {key: 'dots', cat: 'board', name: 'Dots and Boxes', kind: 'Draw lines, close boxes', players: '2 to 4 players', ns: 'boxedin', prefix: 'boxedin-v1-', dir: 'dots/', icon: 'dots', color: '#d9701e'},
+    {key: 'memory', cat: 'board', name: 'Memory', kind: 'Find the matching pairs', players: '2 to 4 players', ns: 'matchup', prefix: 'matchup-v1-', dir: 'memory/', icon: 'memory', color: '#7a4fd1'},
+    {key: 'liarsdice', cat: 'dice', name: 'Liar’s Dice', kind: 'Bid and bluff with hidden dice', players: '2 to 4 players', ns: 'bigbluff', prefix: 'bigbluff-v1-', dir: 'liarsdice/', icon: 'liarsdice', color: '#9b2f5d'},
+    {key: 'blackjack', cat: 'cards', name: 'Blackjack', kind: 'Beat the dealer to 21', players: '1 to 4 players', ns: 'hitme', prefix: 'hitme-v1-', dir: 'blackjack/', icon: 'blackjack', color: '#17643a'},
+    {key: 'dominoes', cat: 'dice', name: 'Dominoes', kind: 'Match the ends', players: '2 to 4 players', ns: 'boneyard', prefix: 'boneyard-v1-', dir: 'dominoes/', icon: 'dominoes', color: '#5b544c'},
+    {key: 'backgammon', cat: 'board', name: 'Backgammon', kind: 'Race your checkers home', players: '2 players', ns: 'bearoff', prefix: 'bearoff-v1-', dir: 'backgammon/', icon: 'backgammon', color: '#7b4b2a'},
+    {key: 'hearts', cat: 'cards', name: 'Hearts', kind: 'Dodge the hearts and the queen', players: '4 players (computers fill in)', ns: 'moonshot', prefix: 'moonshot-v1-', dir: 'hearts/', icon: 'hearts', color: '#c2185b'},
+    {key: 'gin', cat: 'cards', name: 'Gin Rummy', kind: 'Make melds, then knock', players: '2 players', ns: 'knockknock', prefix: 'knockknock-v1-', dir: 'gin/', icon: 'gin', color: '#0f766e'},
+    {key: 'imposters', cat: 'party', name: 'Imposters', kind: 'Like Werewolf or Mafia', players: '4 to 8 players (computers fill in)', ns: 'imposters', prefix: 'imposters-v1-', dir: 'imposters/', icon: 'imposters', color: '#a3262a'},
+    {key: 'questions', cat: 'party', name: 'Party Questions', kind: 'Trivia, Would You Rather and more', players: '1 to 8 players (computers can join)', ns: 'askaway', prefix: 'askaway-v1-', dir: 'questions/', icon: 'questions', color: '#0e9fc9'},
+    {key: 'hangman', cat: 'words', name: 'Hangman', kind: 'Guess the word, letter by letter', players: '1 to 6 players (computers can join)', ns: 'hangman', prefix: 'hangman-v1-', dir: 'hangman/', icon: 'hangman', color: '#64748b'},
+    {key: 'uttt', cat: 'board', name: 'Ultimate Tic-Tac-Toe', kind: 'Tic-tac-toe inside tic-tac-toe', players: '2 players', ns: 'uttt', prefix: 'uttt-v1-', dir: 'uttt/', icon: 'uttt', color: '#4338ca'},
+    {key: 'scrabble', cat: 'words', name: 'Scrabble', kind: 'Make words on the board', players: '2 to 4 players', ns: 'scrabble', prefix: 'scrabble-v1-', dir: 'scrabble/', icon: 'scrabble', color: '#c2410c'},
+    {key: 'pictionary', cat: 'party', name: 'Pictionary', kind: 'Draw it, they guess it', players: '2 to 8 players (computers guess along)', ns: 'pictionary', prefix: 'pictionary-v1-', dir: 'pictionary/', icon: 'pictionary', color: '#c026d3'},
+    {key: 'taboo', cat: 'party', name: 'Taboo', kind: 'Describe it without the taboo words', players: '2 to 8 players (computers can join)', ns: 'taboo', prefix: 'taboo-v1-', dir: 'taboo/', icon: 'taboo', color: '#e11d48'},
+    {key: 'wavelength', cat: 'party', name: 'Wavelength', kind: 'Clue where it lands on the dial', players: '2 to 8 players (computers can join)', ns: 'wavelength', prefix: 'wavelength-v1-', dir: 'wavelength/', icon: 'wavelength', color: '#d97706'},
+    {key: 'gofish', cat: 'cards', name: 'Go Fish', kind: 'Ask for cards, make books of four', players: '2 to 6 players (computers can join)', ns: 'gofish', prefix: 'gofish-v1-', dir: 'gofish/', icon: 'gofish', color: '#0284c7'},
+    {key: 'spades', cat: 'cards', name: 'Spades', kind: 'Partners bid and take tricks', players: '4 players in pairs (computers fill in)', ns: 'spades', prefix: 'spades-v1-', dir: 'spades/', icon: 'spades', color: '#475569'},
+    {key: 'wordgrid', cat: 'words', name: 'Word Grid', kind: 'Race to find words in the letters', players: '1 to 8 players (computers can join)', ns: 'wordgrid', prefix: 'wordgrid-v1-', dir: 'wordgrid/', icon: 'wordgrid', color: '#0d9488'},
+    {key: 'wordlink', cat: 'party', name: 'Word Link', kind: 'Team clues: link the gold words', players: '4 to 8 players in two teams (computers fill in)', ns: 'wordlink', prefix: 'wordlink-v1-', dir: 'wordlink/', icon: 'wordlink', color: '#4f46e5'}
   ];
 
-  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES};
+  // The hub's sections, in order.
+  const CATS = [['party', 'Party games'], ['cards', 'Card games'], ['words', 'Word games'], ['board', 'Board games'], ['dice', 'Dice and tiles']];
+
+  // ----- avatars: an emoji each person picks once (on the hub, or your home page), shown at every table -----
+  const AVATARS = ['😀', '😎', '🤠', '🥳', '🤓', '😺', '🐶', '🦊', '🐼', '🐨', '🐯', '🦁', '🐸', '🐵', '🦄', '🐙', '🦖', '🐢', '🐧', '🦉', '🐝', '🦋', '🐳', '🦈',
+    '🍕', '🌮', '🍩', '🍉', '🌵', '🌻', '🍀', '🔥', '⭐', '🌙', '⚡', '🎸', '🎮', '🎲', '🏀', '⚽', '🚀', '👑', '👻', '👽', '🧙', '🧛', '🧜', '🐲'];
+  const CPU_FACE = '🤖';
+  const cleanAvatar = a => (typeof a === 'string' && (AVATARS.includes(a) || a === CPU_FACE) ? a : '');
+  const avatar = () => cleanAvatar(st.get('gamenight:avatar', ''));
+  const setAvatar = a => { if (AVATARS.includes(a)) st.set('gamenight:avatar', a); };
+  // A grid of emoji buttons; the chosen one is pressed.
+  function avatarPicker(el, onPick) {
+    const paint = () => { const cur = avatar(); el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.av === cur))); };
+    el.innerHTML = AVATARS.map(a => `<button type="button" data-av="${a}" aria-label="Avatar ${a}">${a}</button>`).join('');
+    el.addEventListener('click', e => { const b = e.target.closest('[data-av]'); if (!b) return; setAvatar(b.dataset.av); paint(); if (onPick) onPick(b.dataset.av); });
+    paint();
+  }
+
+  // ----- favorites and recently played, kept on this device -----
+  const known = k => GAMES.some(g => g.key === k);
+  const favs = () => { const f = st.get('gamenight:favs', []); return Array.isArray(f) ? f.filter(known) : []; };
+  function toggleFav(key) { const f = favs(); const i = f.indexOf(key); if (i >= 0) f.splice(i, 1); else if (known(key)) f.push(key); st.set('gamenight:favs', f); return i < 0; }
+  const recent = () => { const r = st.get('gamenight:recent', []); return Array.isArray(r) ? r.filter(known) : []; };
+  function markPlayed(key) { if (!known(key)) return; st.set('gamenight:recent', [key, ...recent().filter(k => k !== key)].slice(0, 8)); }
+
+  return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES, CATS,
+    AVATARS, CPU_FACE, cleanAvatar, avatar, setAvatar, avatarPicker, favs, toggleFav, recent, markPlayed};
 })();
 
 </script>
@@ -1368,6 +1429,13 @@ function nameOf(v, seat) {
   if (seat === 'me') return 'You';
   return (v && v.names && v.names[seat]) || 'Player';
 }
+// A player's avatar (or initial), as markup for a little round badge.
+function avatarOf(v, seat) {
+  const x = seat === 'me' ? v && v.you : seat;
+  const a = v && v.avatars && v.avatars[x];
+  return a ? esc(a) : esc(nameOf(v, seat).slice(0, 1).toUpperCase());
+}
+const CPU_NAMES = ['Milo', 'Juno', 'Otto'];
 function oppName(v) {
   if (!v || !v.others || !v.others.length) return 'Computer';
   return v.others.length === 1 ? nameOf(v, v.others[0].s) : 'Everyone';
@@ -1396,7 +1464,7 @@ function currentView() {
   const ctx = App.mode === 'host' ? App.host : App.solo;
   const s = ctx.s;
   if (!s || !s.seats.includes('A')) return null;
-  return {...toView(s, 'A'), names: s.names, sc: scoreList(ctx, s, 'A')};
+  return {...toView(s, 'A'), names: s.names, avatars: s.avatars || {}, you: 'A', sc: scoreList(ctx, s, 'A')};
 }
 function interactive() {
   if (App.mode !== 'guest') return true;
@@ -1436,7 +1504,8 @@ function newSoloGame() {
   S.s = newGame({...App.settings, seats, first});
   S.s.names = {A: 'You'};
   S.s.ids = {A: 'A'};
-  seats.slice(1).forEach((x, i) => { S.s.names[x] = cpus === 1 ? 'Computer' : `Computer ${i + 1}`; S.s.ids[x] = x; });
+  S.s.avatars = {A: Kit.avatar()};
+  seats.slice(1).forEach((x, i) => { S.s.names[x] = CPU_NAMES[i % CPU_NAMES.length]; S.s.ids[x] = x; S.s.avatars[x] = Kit.CPU_FACE; });
   S.first = seats[(seats.indexOf(first) + 1) % seats.length];
 }
 function backToSolo() { App.mode = 'solo'; App.guest.view = null; App.guest.waitN = 0; closeOverlays(); afterChange(); }
@@ -1510,7 +1579,7 @@ function playerJoin(code) {
       Net.state = 'connected';
       Net.note = '';
       conn.on('data', playerOnData);
-      conn.send({type: 'hello', proto: PROTO, name: App.guest.myName || 'Friend', sid: App.guest.sid, dev: Kit.deviceId()});
+      conn.send({type: 'hello', proto: PROTO, name: App.guest.myName || 'Friend', sid: App.guest.sid, dev: Kit.deviceId(), av: Kit.avatar()});
       if (App.guest.waitN && App.guest.msg) conn.send(App.guest.msg);
       render();
     },
@@ -1539,6 +1608,10 @@ function playerOnData(msg) {
     const names = {};
     for (const [k, val] of Object.entries(g.names || {})) if (SEATS.includes(k)) names[k] = cleanName(val);
     g.names = names;
+    const av = {};
+    for (const [k, val] of Object.entries(g.avatars || {})) if (SEATS.includes(k) && Kit.cleanAvatar(val)) av[k] = Kit.cleanAvatar(val);
+    g.avatars = av;
+    g.you = SEATS.includes(g.you) ? g.you : null;
     G.view = g;
     const ack = g.ack;
     if (G.waitN && ack && ack.sid === G.sid && ack.n >= G.waitN) {
@@ -1635,7 +1708,7 @@ const Role = {
     const btn = $('join-btn');
     btn.disabled = Net.state === 'connecting';
     btn.textContent = Net.state === 'connecting' ? 'Joining…' : Net.state === 'nohost' || Net.state === 'lost' ? 'Try again' : 'Join';
-    $('join-note').textContent = Net.state === 'connecting' ? 'Connecting…' : Net.note || 'Until then, practice against the computer below.';
+    $('join-note').textContent = Net.state === 'connecting' ? 'Connecting…' : Net.note || '';
   },
   wake() { Net.link && Net.link.wake(); },
   escape() { return false; },
@@ -1724,13 +1797,12 @@ function turnAlerts(v) {
   App.ui.myTurnKey = mine ? v.gid : '';
 }
 
+// Everyone at the table on one line: avatar, name and hands won (the leader's count turns gold).
 function renderTop(v) {
   const sc = (v && v.sc) || [{s: 'me', w: 0}, {s: 'B', w: 0}];
-  if (sc.length === 2) {
-    $('score').innerHTML = `<span>You</span><b>${Number(sc[0].w) || 0}</b><span class="dash">–</span><b>${Number(sc[1].w) || 0}</b><span>${esc(nameOf(v, sc[1].s))}</span>`;
-  } else {
-    $('score').innerHTML = sc.map(x => `<span>${esc(nameOf(v, x.s))}</span><b>${Number(x.w) || 0}</b>`).join('<span class="dash">·</span>');
-  }
+  const best = Math.max(0, ...sc.map(x => Number(x.w) || 0));
+  const html = sc.map(x => `<span class="tchip${x.s === 'me' ? ' me' : ''}${best > 0 && (Number(x.w) || 0) === best ? ' lead' : ''}" title="Hands won"><i>${avatarOf(v, x.s)}</i><span class="who">${esc(nameOf(v, x.s))}</span><b>${Number(x.w) || 0}</b></span>`).join('');
+  if ($('score').innerHTML !== html) $('score').innerHTML = html;
   const p = Role.pill();
   $('pill').classList.toggle('on', p.on);
   $('pill-text').textContent = p.text;
@@ -1774,7 +1846,7 @@ function renderOpps(v) {
     if (n > shown) fan += `<span class="more">+${n - shown}</span>`;
     const badge = v && n === 1 && !v.win ? `<span class="badge${exposed ? ' warn' : ''}">${exposed ? 'NO UNO' : 'UNO'}</span>` : '';
     return `<div class="seat${active ? ' active' : ''}${Role.seatAway(o.s) ? ' away' : ''}">
-      <div class="who"><strong><span>${esc(v ? nameOf(v, o.s) : 'Computer')}</span></strong><span class="count">${n} card${n === 1 ? '' : 's'}</span>${badge}</div>
+      <div class="who"><strong><span>${v && v.avatars && v.avatars[o.s] ? esc(v.avatars[o.s]) + ' ' : ''}${esc(v ? nameOf(v, o.s) : 'Milo')}</span></strong><span class="count">${n} card${n === 1 ? '' : 's'}</span>${badge}</div>
       <div class="opp-hand">${fan}</div>${Role.seatExtra(o.s)}</div>`;
   }).join('');
 }
@@ -1978,10 +2050,13 @@ $('btn-keep').addEventListener('click', () => doAction({t: 'keep'}));
 $('btn-uno').addEventListener('click', () => doAction({t: 'uno'}));
 $('btn-catch').addEventListener('click', () => doAction({t: 'catch'}));
 $('btn-new').addEventListener('click', dealSolo);
+$('howto-btn').addEventListener('click', () => { $('howto').hidden = false; $('howto-close').focus(); });
+$('howto-close').addEventListener('click', () => { $('howto').hidden = true; });
 Kit.muteButton($('mute'));
 Kit.reactionBar($('react-bar'), e => Role.react(e));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
+  if (!$('howto').hidden) { $('howto').hidden = true; return; }
   if (!$('picker').hidden) { $('picker').hidden = true; App.ui.pickFor = null; return; }
   Role.escape();
 });
