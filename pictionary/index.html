@@ -581,7 +581,8 @@ const Kit = (() => {
   }
   window.addEventListener('focus', stopBlink);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') stopBlink(); });
-  function buzz(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {} }
+  // (phones only allow it once the page has been tapped; asking before that just logs a warning)
+  function buzz(pattern) { try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(pattern); } catch {} }
   function alertTurn(msg = 'Your turn!') { play('turn'); buzz([90, 60, 150]); blink('● ' + msg); }
   function alertSoft(msg) { play('alert'); buzz(70); blink('● ' + msg); }
 
@@ -693,6 +694,9 @@ const Kit = (() => {
 </script>
 <script>// ---------- connections: PeerJS first, an encrypted MQTT relay as the backup ----------
 // Both sides see the same "conn" shape: send(obj), close(), on('data' | 'close', fn), .open, .via ('p2p' | 'relay').
+// Phones drop links all the time (another app in front, the screen going off, mobile data hiccups), so everything here
+// expects that: a table keeps its code for good, friends' links outlive the table's own server hiccups, and every
+// page checks its links the moment it's back in front and reconnects whatever didn't survive.
 const Link = (() => {
   const params = new URLSearchParams(location.search);
   const store = {
@@ -710,6 +714,7 @@ const Link = (() => {
   const noRelay = params.get('norelay') === '1' || typeof Paho === 'undefined' || !(window.crypto && crypto.subtle);
   const forceRelay = params.get('forcerelay') === '1';
   const rid = () => Math.random().toString(36).slice(2, 12);
+  const isCode = c => typeof c === 'string' && /^[A-Z]{4}$/.test(c);
   function newCode() {
     const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     let s = '';
@@ -717,19 +722,61 @@ const Link = (() => {
     return s;
   }
 
-  // ----- keep-alive: every open conn is pinged; one that goes quiet for 14s is closed -----
+  // ----- waking up: the page was in the background (another app, screen off) and is back -----
+  // Everything that keeps a link alive registers here and gets a nudge the moment the page is in front again.
+  const wakers = new Set();
+  let hiddenAt = document.visibilityState === 'hidden' ? Date.now() : 0;
+  let recheck = 0;
+  function resume(slept) {
+    lastTick = Date.now();
+    checkLinks(true);
+    // a link that hasn't answered in a few seconds is gone: close it so it gets replaced
+    clearTimeout(recheck);
+    recheck = setTimeout(() => checkLinks(false), ANSWER + 300);
+    for (const fn of [...wakers]) { try { fn(slept || 0); } catch (e) { console.error(e); } }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') { if (!hiddenAt) hiddenAt = Date.now(); return; }
+    const slept = hiddenAt ? Date.now() - hiddenAt : 0;
+    hiddenAt = 0;
+    resume(slept);
+  });
+  window.addEventListener('pageshow', e => { if (e.persisted) resume(60000); });
+  window.addEventListener('online', () => resume(60000));
+
+  // ----- keep-alive: every open link is pinged every 4s; one that's quiet for 14s is closed -----
+  // After the page has been asleep, links get a few seconds to answer (pinged with "r": reply now) before they count as gone.
+  const QUIET = 14000, ANSWER = 4000;
   const tracked = new Set();
+  let lastTick = Date.now();
   function track(conn) {
+    if (conn._tracked) return;
+    conn._tracked = true;
     conn._heard = Date.now();
-    conn.on('data', () => { conn._heard = Date.now(); });
+    conn.on('data', m => {
+      conn._heard = Date.now();
+      if (m && m.type === 'ping' && m.r) { try { conn.send({type: 'pong'}); } catch {} }
+    });
     tracked.add(conn);
   }
-  setInterval(() => {
+  function checkLinks(woke) {
+    const now = Date.now();
     for (const c of tracked) {
       if (!c.open || c._closed) { tracked.delete(c); continue; }
-      if (Date.now() - c._heard > 14000) { tracked.delete(c); try { c.close(); } catch {} continue; }
+      if (woke) {
+        c._heard = Math.max(c._heard, now - QUIET + ANSWER);
+        try { c.send({type: 'ping', r: 1}); } catch {}
+        continue;
+      }
+      if (now - c._heard > QUIET) { tracked.delete(c); try { c.close(); } catch {} continue; }
       try { c.send({type: 'ping'}); } catch {}
     }
+  }
+  setInterval(() => {
+    const now = Date.now(), gap = now - lastTick;
+    lastTick = now;
+    // a long gap between ticks means the page was frozen (or slowed down in the background): links get a chance to answer
+    if (gap > 9000) { if (document.visibilityState === 'visible') resume(gap); else checkLinks(true); } else checkLinks(false);
   }, 4000);
 
   // ----- relay crypto: the table code turns into an AES key and a topic nobody can guess from the code alone -----
@@ -765,34 +812,61 @@ const Link = (() => {
   const brokers = new Map();
   function broker(url) {
     if (brokers.has(url)) return brokers.get(url);
-    const br = {url, client: null, pending: null, subs: new Map(), lost: new Set()};
+    const br = {url, client: null, pending: null, subs: new Map(), lost: new Set(), echo: 'gn1/echo/' + rid() + rid(), echoWait: null};
+    // The connection is gone (or was found dead): forget it and tell everyone using it.
+    const lostClient = client => {
+      if (br.client !== client) return;
+      br.client = null;
+      br.pending = null;
+      br.subs.clear();
+      clearTimeout(br.echoWait);
+      br.echoWait = null;
+      const fns = [...br.lost];
+      br.lost.clear();
+      fns.forEach(fn => { try { fn(); } catch {} });
+    };
     br.connect = () => {
       if (br.client) return Promise.resolve(br);
       if (br.pending) return br.pending;
       br.pending = new Promise((resolve, reject) => {
         let client;
         try { client = new Paho.Client(url, 'gn' + rid()); } catch (e) { br.pending = null; reject(e); return; }
-        client.onMessageArrived = m => { const h = br.subs.get(m.destinationName); if (h) h(m.payloadString); };
-        client.onConnectionLost = () => {
-          br.client = null;
-          br.pending = null;
-          br.subs.clear();
-          const fns = [...br.lost];
-          br.lost.clear();
-          fns.forEach(fn => { try { fn(); } catch {} });
+        client.onMessageArrived = m => {
+          if (br.client !== client) return;
+          if (m.destinationName === br.echo) { clearTimeout(br.echoWait); br.echoWait = null; return; }
+          const h = br.subs.get(m.destinationName);
+          if (h) h(m.payloadString);
         };
+        client.onConnectionLost = () => lostClient(client);
         client.connect({
           useSSL: url.startsWith('wss'), timeout: 6, keepAliveInterval: 20, cleanSession: true,
-          onSuccess: () => { br.client = client; br.pending = null; resolve(br); },
+          onSuccess: () => {
+            br.client = client;
+            br.pending = null;
+            try { client.subscribe(br.echo, {qos: 0}); } catch {}
+            resolve(br);
+          },
           onFailure: e => { br.pending = null; reject(new Error((e && e.errorMessage) || 'relay connect failed')); }
         });
       });
       return br.pending;
     };
+    // After the page slept, make sure the connection still works: a note to ourselves should come straight back.
+    br.check = () => {
+      const client = br.client;
+      if (!client || br.echoWait) return;
+      br.echoWait = setTimeout(() => {
+        br.echoWait = null;
+        if (br.client !== client) return;
+        lostClient(client);
+        try { client.disconnect(); } catch {}
+      }, 5000);
+      br.publish(br.echo, 'x');
+    };
     br.subscribe = (topic, handler) => new Promise((resolve, reject) => {
       if (!br.client) { reject(new Error('not connected')); return; }
       br.subs.set(topic, handler);
-      br.client.subscribe(topic, {qos: 0, timeout: 6, onSuccess: () => resolve(), onFailure: () => reject(new Error('subscribe failed'))});
+      try { br.client.subscribe(topic, {qos: 0, timeout: 6, onSuccess: () => resolve(), onFailure: () => reject(new Error('subscribe failed'))}); } catch (e) { reject(e); }
     });
     br.unsubscribe = topic => { br.subs.delete(topic); try { br.client && br.client.unsubscribe(topic); } catch {} };
     br.publish = (topic, text) => {
@@ -805,6 +879,7 @@ const Link = (() => {
     brokers.set(url, br);
     return br;
   }
+  wakers.add(slept => { if (slept > 3000) for (const br of brokers.values()) br.check(); });
 
   // A conversation with one other page through a broker. Messages on the wire: {c: conn id, k: 'hi'|'ok'|'data'|'bye', m}.
   function makeRelayConn(br, r, id, outTopic) {
@@ -826,49 +901,59 @@ const Link = (() => {
     return br.subscribe(topic, text => { chain = chain.then(() => unseal(r, text)).then(msg => { if (msg && typeof msg.c === 'string') onMsg(msg); }); });
   }
 
-  // Host side of the relay: listen on every broker at once.
+  // Host side of the relay: listen on every broker at once (and keep listening through drops).
   function relayHost(game, getCode, onConn, onStatus) {
-    if (noRelay) return {stop() {}, restart() {}};
+    if (noRelay) return {stop() {}, start() {}};
     let stopped = false, gen = 0;
-    const conns = new Map(), live = new Set();
+    const conns = new Map(), live = new Set(), busy = new Set(), timers = new Set();
+    const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); };
     function attach(url, myGen) {
-      if (stopped || myGen !== gen) return;
+      if (stopped || myGen !== gen || busy.has(url) || live.has(url)) return;
+      busy.add(url);
       const br = broker(url);
+      const sid = rid();
       let r;
       room(game, getCode()).then(x => { r = x; return br.connect(); })
         .then(() => inbox(br, r, r.topic + '/h', msg => {
-          if (myGen !== gen) return;
+          if (myGen !== gen || stopped) return;
           let c = conns.get(msg.c);
           if (msg.k === 'hi') {
-            if (c) { c.post('ok'); return; }
+            if (c) { c.post('ok', {s: sid}); return; }
             c = makeRelayConn(br, r, msg.c, r.topic + '/g/' + msg.c);
             c.url = url;
             c.cleanup = () => conns.delete(msg.c);
             conns.set(msg.c, c);
             c.open = true;
-            c.post('ok');
+            c.post('ok', {s: sid});
             track(c);
             onConn(c);
           } else if (c && msg.k === 'data') c.emit('data', msg.m);
           else if (c && msg.k === 'bye') c.ended();
         }))
         .then(() => {
+          busy.delete(url);
+          if (myGen !== gen || stopped) return;
+          // tell friends still holding a relay link from before (this page reloaded, or the broker dropped) to make a new one
+          seal(r, {c: '*', k: 'reset', m: {s: sid}}).then(t => br.publish(r.topic + '/b', t), () => {});
           live.add(url);
           onStatus(live.size > 0);
           br.lost.add(() => {
             live.delete(url);
             onStatus(live.size > 0);
             for (const c of [...conns.values()]) if (c.url === url) c.ended();
-            setTimeout(() => attach(url, myGen), 5000);
+            later(() => attach(url, myGen), 2000);
           });
         })
-        .catch(() => { live.delete(url); onStatus(live.size > 0); setTimeout(() => attach(url, myGen), 15000); });
+        .catch(() => { busy.delete(url); live.delete(url); onStatus(live.size > 0); later(() => attach(url, myGen), 10000); });
     }
-    function start() { gen++; for (const url of BROKERS) attach(url, gen); }
+    // after a sleep, a broker that never came back gets another try now rather than at its next turn
+    const wake = () => { if (!stopped) for (const url of BROKERS) attach(url, gen); };
+    wakers.add(wake);
+    function start() { stopped = false; gen++; for (const t of timers) clearTimeout(t); timers.clear(); live.clear(); busy.clear(); for (const url of BROKERS) attach(url, gen); }
     start();
     return {
-      stop() { stopped = true; for (const c of [...conns.values()]) c.close(); },
-      restart() { for (const c of [...conns.values()]) c.close(); start(); }
+      stop() { stopped = true; gen++; for (const t of timers) clearTimeout(t); timers.clear(); for (const c of [...conns.values()]) c.close(); live.clear(); onStatus(false); },
+      start
     };
   }
   // Guest side of the relay: try each broker until the host answers.
@@ -881,11 +966,13 @@ const Link = (() => {
       const id = rid();
       const c = makeRelayConn(br, r, id, r.topic + '/h');
       const mine = r.topic + '/g/' + id;
+      // the table restarted its relay: a link from before can't be answered any more
+      inbox(br, r, r.topic + '/b', msg => { if (msg.k === 'reset' && msg.m && c.hs && msg.m.s !== c.hs) c.ended(); }).catch(() => {});
       const ok = await new Promise(resolve => {
         const t = setTimeout(() => resolve(false), waitMs);
         inbox(br, r, mine, msg => {
           if (msg.c !== id) return;
-          if (msg.k === 'ok') { clearTimeout(t); resolve(true); }
+          if (msg.k === 'ok') { c.hs = msg.m && typeof msg.m.s === 'string' ? msg.m.s : ''; clearTimeout(t); resolve(true); }
           else if (msg.k === 'data') c.emit('data', msg.m);
           else if (msg.k === 'bye') c.ended();
         }).then(() => c.post('hi'), () => { clearTimeout(t); resolve(false); });
@@ -901,60 +988,153 @@ const Link = (() => {
     return null;
   }
 
-  // ===== host: open a table under a 4-letter code (kept per game in localStorage) =====
+  // ===== host: open a table under a 4-letter code (kept per game in localStorage, for good) =====
+  // The code is the table's address: friends' phones remember it, so it never changes by itself. With the code goes a private
+  // key (the PeerJS "token"): the connection server lets whoever holds the key take the code straight back after any drop or
+  // reload, where anyone else has to wait up to 90 seconds for the server to give up on the old link.
+  // onState gets {code, p2p, relay, ready, note, elsewhere}; elsewhere: this table was opened in another tab, which has it now.
   function host({game, prefix, codeKey, onConn, onState}) {
-    let code = store.get(codeKey, null) || newCode();
+    let code = store.get(codeKey, null);
+    if (!isCode(code)) code = newCode();
     store.set(codeKey, code);
-    let peer = null, tries = 0, timer = 0, p2p = false, relayOn = false, note = '';
-    const report = () => onState({code, p2p, relay: relayOn, ready: p2p || relayOn, note});
-    const relay = relayHost(game, () => code, c => onConn(c), on => { relayOn = on; report(); });
-    function open() {
+    const tokKey = codeKey + ':key';
+    let tok = store.get(tokKey, null);
+    if (typeof tok !== 'string' || !/^[a-z0-9]{16,40}$/.test(tok)) { tok = rid() + rid() + rid(); store.set(tokKey, tok); }
+    let peer = null, timer = 0, p2p = false, relayOn = false, note = '', fails = 0, takenSince = 0, elsewhere = false, downSince = 0, offline = false;
+    const report = () => onState({code, p2p, relay: relayOn, ready: !elsewhere && (p2p || relayOn), note: elsewhere ? 'Your table is open in another tab or window now.' : note || (offline ? 'Can’t reach the connection servers. Check your internet connection; the table keeps trying.' : ''), elsewhere});
+    // nothing reachable for a while (no internet): say so, rather than "opening…" forever
+    setInterval(() => {
+      const down = !elsewhere && !p2p && !relayOn;
+      if (!down) downSince = 0; else if (!downSince) downSince = Date.now();
+      const now = !!downSince && Date.now() - downSince > 20000;
+      if (now !== offline) { offline = now; report(); }
+    }, 5000);
+    const relay = relayHost(game, () => code, c => { if (elsewhere) { try { c.close(); } catch {} return; } onConn(c); }, on => { relayOn = on; report(); });
+    const setP2p = on => { if (on) { fails = 0; takenSince = 0; note = ''; } if (p2p !== on || on) { p2p = on; report(); } };
+    const later = ms => { clearTimeout(timer); timer = setTimeout(keep, ms); };
+    const wsOpen = p => { try { return !!(p.socket && p.socket._wsOpen && p.socket._wsOpen()); } catch { return false; } };
+    // A new link to the connection server under this table's code (only when PeerJS has given up on the old one).
+    function fresh() {
       if (typeof Peer !== 'function') { note = 'The connection code didn’t load. Reload the page.'; report(); return; }
-      const p = peer = new Peer(prefix + code, peerOptions());
-      p.on('open', () => { if (peer !== p) return; tries = 0; p2p = true; note = ''; report(); });
-      p.on('connection', c => c.on('open', () => { c.via = 'p2p'; track(c); onConn(c); }));
-      p.on('disconnected', () => {
-        if (peer !== p || p.destroyed) return;
-        p2p = false;
-        report();
-        setTimeout(() => { if (peer === p && !p.destroyed && p.disconnected) p.reconnect(); }, 2000);
-      });
+      const p = peer = new Peer(prefix + code, {...peerOptions(), token: tok});
+      p.on('open', () => { if (peer === p) setP2p(true); });
+      p.on('connection', c => c.on('open', () => {
+        if (elsewhere) { try { c.close(); } catch {} return; }
+        c.via = 'p2p';
+        track(c);
+        onConn(c);
+      }));
+      p.on('disconnected', () => { if (peer !== p) return; p2p = false; report(); later(backoff()); });
       p.on('error', err => {
-        if (peer !== p || err.type === 'peer-unavailable') return;
-        p.destroy();
-        peer = null;
+        if (peer !== p) return;
+        const t = err && err.type;
+        // trouble with one friend's link isn't the table's trouble
+        if (t === 'peer-unavailable' || t === 'webrtc' || t === 'negotiation-failed' || t === 'connection-closed') return;
+        fails++;
+        if (t === 'unavailable-id') {
+          // Someone else holds the code (this table open in another browser, or a page from before this fix until the server drops it).
+          if (!takenSince) takenSince = Date.now();
+          note = Date.now() - takenSince > 30000 ? `Code ${code} is busy somewhere else (is this table open in another browser?). Trying again…` : '';
+        } else if (t === 'browser-incompatible') note = 'This browser can’t connect directly. Friends join through the backup line.';
         p2p = false;
-        if (err.type === 'unavailable-id') {
-          // The code is still held (often by this same table a moment ago). Retry it, then pick a new one.
-          if (++tries > 4) { code = newCode(); store.set(codeKey, code); tries = 0; relay.restart(); }
-        } else note = 'Can’t reach the main connection server. Retrying…';
         report();
-        clearTimeout(timer);
-        timer = setTimeout(open, 3000);
+        later(backoff());
       });
+      verify(p, 0);
     }
-    open();
+    // The server says nothing when it hands the code straight back to its key holder, so check the link itself:
+    // open and not refused after a couple of seconds means the table is reachable again.
+    function verify(p, n) {
+      setTimeout(() => {
+        if (peer !== p || p.destroyed || p.disconnected || elsewhere) return;
+        if (p.open) { setP2p(true); return; }
+        if (wsOpen(p)) {
+          if (n >= 1) {
+            p._open = true;
+            p._lastServerId = p.id || prefix + code;
+            setP2p(true);
+            return;
+          }
+        }
+        if (n < 10) verify(p, n + 1);
+        // still nothing after 15 seconds: the attempt is stuck somewhere, so drop it and try again
+        else { try { p.disconnect(); } catch {} }
+      }, 1500);
+    }
+    const backoff = () => [1000, 2000, 3000, 5000, 8000][Math.min(fails, 4)];
+    // Keep the table reachable. Friends' direct links survive a lost server link, so it's only ever reconnected, never torn down.
+    function keep() {
+      clearTimeout(timer);
+      if (elsewhere) return;
+      const p = peer;
+      if (!p || p.destroyed) { fresh(); return; }
+      if (p.disconnected) {
+        if (!p._lastServerId) p._lastServerId = p.id || prefix + code;
+        try { p.reconnect(); } catch { try { p.destroy(); } catch {} peer = null; later(500); return; }
+        verify(p, 0);
+      }
+    }
+    // Back from the background: after a long sleep the server link is usually dead (or the phone's address changed), even if
+    // it still looks open, so make a clean new one; friends' links stay up meanwhile.
+    function wake(slept) {
+      if (elsewhere) return;
+      const p = peer;
+      if (!p || p.destroyed || p.disconnected) { fails = 0; keep(); return; }
+      if (slept > 20000) { p2p = false; report(); try { p.disconnect(); } catch {} fails = 0; later(300); }
+    }
+    wakers.add(wake);
+    // One tab per table: opening it somewhere else on this device moves it there (both would answer friends otherwise).
+    const tab = rid();
+    const tabKey = codeKey + ':tab';
+    function claim() {
+      store.set(tabKey, {tab, at: Date.now()});
+      if (!elsewhere) return;
+      elsewhere = false;
+      fails = 0;
+      relay.start();
+      keep();
+      report();
+    }
+    window.addEventListener('storage', e => {
+      if (e.key !== tabKey || elsewhere) return;
+      let v = null;
+      try { v = JSON.parse(e.newValue); } catch {}
+      if (!v || v.tab === tab) return;
+      elsewhere = true;
+      clearTimeout(timer);
+      const p = peer;
+      peer = null;
+      p2p = false;
+      try { p && p.destroy(); } catch {}
+      relay.stop();
+      report();
+    });
+    claim();
+    fresh();
     report();
     return {
       get code() { return code; },
-      wake() {
-        if (!peer || peer.destroyed) { clearTimeout(timer); open(); }
-        else if (peer.disconnected) peer.reconnect();
-      }
+      get elsewhere() { return elsewhere; },
+      claim,
+      wake() { wake(0); }
     };
   }
 
   // ===== guest: reach a table by code. Direct first; the relay joins the race after a few seconds or as soon as direct fails =====
   function join({game, prefix, code, onConn, onState}) {
-    let alive = true, peer = null, current = null, timer = 0, attempt = 0;
+    let alive = true, peer = null, current = null, timer = 0, attempt = 0, misses = 0, trying = 0, holdUntil = 0;
     function start() {
+      clearTimeout(timer);
       if (!alive) return;
       const my = ++attempt;
+      trying = Date.now();
       onState('connecting', '');
       let done = false, relayStarted = false, relayFailed = noRelay, p2pFailed = forceRelay, noHost = false;
       const win = conn => {
         if (done || my !== attempt || !alive) { try { conn.close(); } catch {} return; }
         done = true;
+        trying = 0;
+        misses = 0;
         clearTimeout(t1);
         clearTimeout(t2);
         current = conn;
@@ -963,15 +1143,18 @@ const Link = (() => {
         conn.on('close', () => { if (current !== conn) return; current = null; onState('lost', ''); retry(); });
         onConn(conn);
       };
-      const giveUp = () => {
+      const fail = () => {
         if (done || my !== attempt) return;
-        if (!(p2pFailed && relayFailed)) return;
+        done = true;
+        trying = 0;
+        clearTimeout(t1);
         clearTimeout(t2);
         onState(noHost ? 'nohost' : 'lost', '');
         retry();
       };
+      const giveUp = () => { if (p2pFailed && relayFailed) fail(); };
       const startRelay = () => {
-        if (relayStarted || noRelay) return;
+        if (relayStarted || noRelay || done) return;
         relayStarted = true;
         relayJoin(game, code).then(c => { if (c) win(c); else { relayFailed = true; giveUp(); } }, () => { relayFailed = true; giveUp(); });
       };
@@ -992,15 +1175,34 @@ const Link = (() => {
           giveUp();
         });
       } else p2pFailed = true;
-      const t1 = setTimeout(startRelay, p2pFailed ? 0 : 5000);
-      const t2 = setTimeout(() => { if (!done && my === attempt) { onState(noHost ? 'nohost' : 'lost', ''); retry(); } }, 25000);
+      const t1 = setTimeout(startRelay, p2pFailed ? 0 : 4000);
+      const t2 = setTimeout(fail, 22000);
     }
-    function retry() { clearTimeout(timer); if (alive) timer = setTimeout(start, 4000); }
+    // Try again soon (sooner the first time: most drops are momentary).
+    function retry() {
+      clearTimeout(timer);
+      if (!alive) return;
+      const ms = Math.max([700, 2000, 3000, 4000][Math.min(misses++, 3)], holdUntil - Date.now());
+      timer = setTimeout(start, ms);
+    }
+    // Back in front: with no link, try right now (and give up on an attempt that started before the sleep).
+    function wake() {
+      if (!alive || current) return;
+      if (trying && Date.now() - trying < 8000) return;
+      misses = 0;
+      start();
+    }
+    wakers.add(wake);
     start();
     return {
       get conn() { return current; },
-      stop() { alive = false; clearTimeout(timer); try { peer && peer.destroy(); } catch {} try { current && current.close(); } catch {} },
-      wake() { if (!current && alive) { clearTimeout(timer); start(); } }
+      setCode(c) { if (isCode(c)) code = c; },
+      // the table said it's full: check back less often for a while
+      hold(ms) { holdUntil = Date.now() + ms; },
+      stop() { alive = false; wakers.delete(wake); clearTimeout(timer); try { peer && peer.destroy(); } catch {} try { current && current.close(); } catch {} },
+      wake,
+      // "Reconnect now": drop whatever is there and start over straight away
+      redo() { if (!alive) return; const c = current; current = null; try { c && c.close(); } catch {} misses = 0; holdUntil = 0; start(); }
     };
   }
 
@@ -1047,6 +1249,8 @@ const Link = (() => {
       try { p.destroy(); } catch {}
     }, 20000);
   }
+  // after a sleep the shared probe link is probably dead: start a new one next time
+  wakers.add(slept => { if (slept > 20000 && Probe.peer && !Probe.waiting.size) { const p = Probe.peer; Probe.peer = null; Probe.ready = null; try { p.destroy(); } catch {} } });
   function probe({game, prefix, code, dev}) {
     return new Promise(resolve => {
       const id = prefix + code;
@@ -1090,7 +1294,7 @@ const Link = (() => {
     });
   }
 
-  return {host, join, probe, newCode};
+  return {host, join, probe, newCode, resume};
 })();
 </script>
 <script>// ---------- Game Night table: seats, connection, turns, computer players, rematches, reactions, reviews and records ----------
@@ -1120,6 +1324,8 @@ const App = {
   hostName: '',
   guest: {sid: rid(), n: 0, waitN: 0, msg: null, pending: null, view: null, lobby: null, hostName: 'Host', myName: '', old: false},
   ui: {bannerKey: '', overKey: '', overDismissed: null, myTurn: false, endSound: null, reviewTab: '', reviewSet: null, preview: null, played: false},
+  // this host page handed its table to another tab (opened later on this device): it stays still until it's used again
+  elsewhere: false,
   // A TV or laptop showing the table to the room (opened with ?tv): it watches, it doesn't play.
   tv: new URLSearchParams(location.search).has('tv')
 };
@@ -1185,6 +1391,7 @@ function applyAct(s, seat, a) {
   return r;
 }
 function act(a) {
+  if (App.elsewhere) { toast('Your table is open in another tab now.'); return; }
   if (!App.ui.played) { App.ui.played = true; Kit.markPlayed(G.key); }
   if (App.mode === 'guest') {
     const g = App.guest;
@@ -1224,6 +1431,7 @@ function liveApply(s, seat, d, from) {
   if (G.liveIn) { try { G.liveIn(out); } catch (e) { console.error(e); } }
 }
 function afterChange() {
+  if (App.elsewhere) { render(); return; }
   tally();
   save();
   Role.publish();
@@ -1249,6 +1457,7 @@ function tally() {
   }
 }
 function save() {
+  if (App.elsewhere) return;
   const H = App.host;
   store.set(SAVE_KEY, {
     ver: G.version,
@@ -1270,6 +1479,7 @@ function pickFirst(ctx, seats) {
 function newGameFor(ctx, seats, ids, names, avatars) {
   const s = G.newGame({seats, first: pickFirst(ctx, seats), settings: App.settings, ids});
   s.gid = rid();
+  s.at = Date.now();
   s.seats = seats.slice();
   s.ids = ids;
   s.names = names;
@@ -1317,7 +1527,7 @@ function backToSolo() {
 // ---------- computer players: whoever's turn it is, if that seat is a computer ----------
 const Bot = {key: ''};
 function botUpdate() {
-  if (App.tv) return;
+  if (App.tv || App.elsewhere) return;
   const ctx = liveCtx(), s = ctx && ctx.s;
   if (!s || G.over(s)) return;
   const seat = (G.waiting(s) || []).find(x => isCpu(s.ids[x]));
@@ -1345,7 +1555,7 @@ function botUpdate() {
 
 // ---------- timed steps (a dealer's turn, a pause to show a trick): the page running the game moves them on ----------
 setInterval(() => {
-  if (!G || !G.tick || App.mode === 'guest' || App.tv) return;
+  if (!G || !G.tick || App.mode === 'guest' || App.tv || App.elsewhere) return;
   const ctx = liveCtx(), s = ctx && ctx.s;
   if (!s || G.over(s)) return;
   let changed = false;
@@ -1503,7 +1713,15 @@ function playerOnData(msg) {
   if (!msg || typeof msg !== 'object') return;
   const P = App.guest;
   if (msg.type === 'react') { if (Kit.validEmoji(msg.e)) Kit.showReaction(msg.e, cleanName(msg.from) || P.hostName); return; }
-  if (msg.type === 'full') { Net.note = 'That table is full right now.'; toast(Net.note); render(); return; }
+  if (msg.type === 'full' && msg.soon) { if (Net.link && Net.link.hold) Net.link.hold(3000); return; }
+  if (msg.type === 'full') {
+    // (it checks again now and then, without a message every time)
+    if (Net.note !== 'That table is full right now.') toast('That table is full right now.');
+    Net.note = 'That table is full right now.';
+    if (Net.link && Net.link.hold) Net.link.hold(15000);
+    render();
+    return;
+  }
   if (msg.type === 'live') { if (G.liveIn && App.mode === 'guest' && P.view && msg.g === P.view.gid) { try { G.liveIn(msg.d); } catch (e) { console.error(e); } } return; }
   if (msg.type !== 'state') return;
   P.old = msg.proto !== G.proto;
@@ -1511,7 +1729,15 @@ function playerOnData(msg) {
   const L = msg.lobby;
   P.lobby = L && typeof L === 'object' ? {players: Array.isArray(L.players) ? L.players.slice(0, 9).map(cleanName) : [], faces: Array.isArray(L.faces) ? L.faces.slice(0, 9).map(Kit.cleanAvatar) : [], playing: !!L.playing} : null;
   P.night = cleanNight(msg.night);
-  if (typeof msg.code === 'string' && /^[A-Z]{4}$/.test(msg.code)) P.code = msg.code;
+  if (typeof msg.code === 'string' && /^[A-Z]{4}$/.test(msg.code)) {
+    P.code = msg.code;
+    // the table's code is its address: if it ever changes, this phone follows it
+    if (msg.code !== Net.code) {
+      Net.code = msg.code;
+      if (!App.tv) store.set(G.ns + ':join', {code: msg.code, name: App.guest.myName});
+      if (Net.link && Net.link.setCode) Net.link.setCode(msg.code);
+    }
+  }
   const g = msg.g;
   let ok = false;
   try { ok = cleanBase(g) && G.cleanView(g); } catch (e) { console.error(e); ok = false; }
@@ -1536,6 +1762,8 @@ function playerOnData(msg) {
   }
   render();
 }
+// Skip the wait: try the table again right now.
+function reconnectNow() { if (Net.link && Net.link.redo) { Net.link.redo(); toast('Reconnecting…'); } else playerJoin(Net.code); }
 function askRematch() {
   if (Net.state !== 'connected' || !Net.conn) return;
   try { Net.conn.send({type: 'rematch'}); } catch {}
@@ -1648,7 +1876,10 @@ const Role = {
     const P = App.guest, host = P.hostName || 'Host';
     if (Net.state === 'connected' && P.old) return {text: `${host}’s table is running a different version. Ask them to reload their table page.`};
     if (App.mode === 'guest') {
-      if (Net.state !== 'connected') return {text: Net.note || `Lost the connection to ${host}. Reconnecting…`, actions: [['Practice', backToSolo]]};
+      if (Net.state !== 'connected') {
+        const acts = Net.state === 'connecting' ? [] : [['Reconnect now', reconnectNow, true]];
+        return {text: Net.note || `Lost the connection to ${host}. Reconnecting…`, actions: [...acts, ['Practice', backToSolo]]};
+      }
       if (v && v.over && !App.ui.preview) {
         if (App.ui.overDismissed !== v.gid) return null;
         if (v.asked) return {text: `You asked for a rematch. ${host} starts it.`};
