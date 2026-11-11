@@ -581,6 +581,8 @@ const Kit = (() => {
     lose: () => [392, 330, 262].forEach((f, i) => tone(f, i * 0.14, 0.3, 'sine', 0.09))
   };
   function play(name) {
+    // a game just ended: the host's Spotify music (if it's on) dips for the moment
+    if ((name === 'win' || name === 'lose') && typeof GNMusic !== 'undefined') { try { GNMusic.duck(); } catch {} }
     if (muted || !ctx || ctx.state !== 'running' || !SOUNDS[name]) return;
     try { SOUNDS[name](); } catch {}
   }
@@ -720,6 +722,7 @@ const Kit = (() => {
 })();
 
 </script>
+
 <script>// ---------- connections: PeerJS first, an encrypted MQTT relay as the backup ----------
 // Both sides see the same "conn" shape: send(obj), close(), on('data' | 'close', fn), .open, .via ('p2p' | 'relay').
 // Phones drop links all the time (another app in front, the screen going off, mobile data hiccups), so everything here

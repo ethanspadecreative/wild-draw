@@ -344,6 +344,8 @@ const Kit = (() => {
     lose: () => [392, 330, 262].forEach((f, i) => tone(f, i * 0.14, 0.3, 'sine', 0.09))
   };
   function play(name) {
+    // a game just ended: the host's Spotify music (if it's on) dips for the moment
+    if ((name === 'win' || name === 'lose') && typeof GNMusic !== 'undefined') { try { GNMusic.duck(); } catch {} }
     if (muted || !ctx || ctx.state !== 'running' || !SOUNDS[name]) return;
     try { SOUNDS[name](); } catch {}
   }

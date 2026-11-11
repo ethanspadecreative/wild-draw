@@ -269,6 +269,7 @@ body.tv .top { grid-area: top; }
 body.tv .top-tools > :not(.pill) { display: none; }
 body.tv .game { grid-area: game; width: 620px; justify-self: center; transform-origin: top center; }
 body.tv:not(.tv-live) .game { display: none; }
+body.tv:not(.tv-live) .score, body.tv:not(.tv-live) .status { visibility: hidden; }
 body.tv .side-top, body.tv .controls, body.tv .react-bar, body.tv .assist { display: none !important; }
 body.tv .side-bottom { display: contents; }
 body.tv .status { grid-area: status; font-size: 26px; }
@@ -286,6 +287,11 @@ body.tv:not(.tv-live) .tv-wait { grid-area: game; display: grid; place-items: ce
 .tv-people li i { font-style: normal; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); font-size: 20px; flex: none; }
 .tv-people li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tv-people li b { font-family: var(--font-display); font-weight: 400; color: var(--yellow); }
+.tv-song { display: flex; align-items: center; gap: 12px; }
+.tv-song img, .tv-song .tv-note { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex: none; background: var(--panel-2); display: grid; place-items: center; font-size: 26px; color: #1ed760; }
+.tv-song div { min-width: 0; display: flex; flex-direction: column; }
+.tv-song b { font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-song span { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-wait h2 { margin: 0 0 8px; font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 4vw, 60px); }
 .tv-wait p { margin: 0; color: var(--muted); font-size: clamp(18px, 1.8vw, 26px); }
 @media (prefers-reduced-motion: reduce) {
@@ -547,6 +553,8 @@ const Kit = (() => {
     lose: () => [392, 330, 262].forEach((f, i) => tone(f, i * 0.14, 0.3, 'sine', 0.09))
   };
   function play(name) {
+    // a game just ended: the host's Spotify music (if it's on) dips for the moment
+    if ((name === 'win' || name === 'lose') && typeof GNMusic !== 'undefined') { try { GNMusic.duck(); } catch {} }
     if (muted || !ctx || ctx.state !== 'running' || !SOUNDS[name]) return;
     try { SOUNDS[name](); } catch {}
   }
@@ -686,6 +694,7 @@ const Kit = (() => {
 })();
 
 </script>
+
 <script>// ---------- connections: PeerJS first, an encrypted MQTT relay as the backup ----------
 // Both sides see the same "conn" shape: send(obj), close(), on('data' | 'close', fn), .open, .via ('p2p' | 'relay').
 // Phones drop links all the time (another app in front, the screen going off, mobile data hiccups), so everything here
@@ -1670,6 +1679,13 @@ function playerJoin(code) {
   });
   render();
 }
+// The song playing on the host's Spotify, as their table sent it (for the TV): {t, a, img, on}
+function cleanMusic(m) {
+  if (!m || typeof m !== 'object' || typeof m.t !== 'string' || !m.t) return null;
+  const txt = x => String(x || '').replace(/[\x00-\x1f\x7f]/g, ' ').trim().slice(0, 90);
+  const img = typeof m.img === 'string' && (/^https:\/\/i\.scdn\.co\/image\/[a-f0-9]{16,64}$/.test(m.img) || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) && /^http:\/\/127\.0\.0\.1:\d+\/img\/[a-z0-9-]+$/.test(m.img))) ? m.img : '';
+  return {t: txt(m.t), a: txt(m.a), img, on: !!m.on};
+}
 // Tonight's scoreboard as the host's table sent it.
 function cleanNight(n) {
   if (!n || typeof n !== 'object' || !Array.isArray(n.rows)) return null;
@@ -1723,6 +1739,7 @@ function playerOnData(msg) {
   const L = msg.lobby;
   P.lobby = L && typeof L === 'object' ? {players: Array.isArray(L.players) ? L.players.slice(0, 9).map(cleanName) : [], faces: Array.isArray(L.faces) ? L.faces.slice(0, 9).map(Kit.cleanAvatar) : [], playing: !!L.playing} : null;
   P.night = cleanNight(msg.night);
+  P.music = cleanMusic(msg.music);
   if (typeof msg.code === 'string' && /^[A-Z]{4}$/.test(msg.code)) {
     P.code = msg.code;
     // the table's code is its address: if it ever changes, this phone follows it
@@ -1812,12 +1829,14 @@ const TV = {
     const who2 = live ? v.seats.map(x => ({face: face(v, x), name: who(v, x), w: (v.sc.find(y => y.seat === x) || {}).w || 0}))
       : P.lobby ? P.lobby.players.map((n, i) => ({face: esc(P.lobby.faces[i] || (n || '?').slice(0, 1).toUpperCase()), name: n, w: null})) : [];
     const night = P.night, url = TV.joinUrl();
-    const key = JSON.stringify([live, code, who2, night, !!window.qrcode, Net.state, host, P.lobby && P.lobby.playing]);
+    const music = Net.state === 'connected' ? P.music : null;
+    const key = JSON.stringify([live, code, who2, night, !!window.qrcode, Net.state, host, P.lobby && P.lobby.playing, music]);
     if (key !== TV.key) {
       TV.key = key;
       const short = url.replace(/^https?:\/\//, '').replace(/[?#].*$/, '');
       $('tv-side').innerHTML = `<div class="tv-card"><h3>Join this table</h3>${window.qrcode ? `<div class="tv-qr">${TV.qr(url)}</div>` : ''}<div class="tv-code">${esc(code || '····')}</div><div class="tv-url">Scan it, or open ${esc(short)} and type the code.</div></div>`
         + (who2.length ? `<div class="tv-card"><h3>${live ? 'Playing now' : `At ${esc(host)}’s table`}</h3><ul class="tv-people">${who2.map(p => `<li><i>${p.face}</i><span>${esc(p.name)}</span>${p.w != null ? `<b>${fmtPts(p.w)}</b>` : ''}</li>`).join('')}</ul></div>` : '')
+        + (music ? `<div class="tv-card tv-music"><h3>${music.on ? 'Now playing' : 'Music paused'}</h3><div class="tv-song">${music.img ? `<img src="${esc(music.img)}" alt="">` : '<span class="tv-note">♪</span>'}<div><b>${esc(music.t)}</b><span>${esc(music.a)}</span></div></div></div>` : '')
         + (night && night.rows.length ? `<div class="tv-card"><h3>Game Night · ${night.games} game${night.games === 1 ? '' : 's'}</h3><ul class="tv-people">${night.rows.slice(0, 6).map((r, i) => `<li><i>${esc(r.avatar || r.name.slice(0, 1).toUpperCase())}</i><span>${i === 0 && r.pts ? '👑 ' : ''}${esc(r.name)}</span><b>${r.pts}</b></li>`).join('')}</ul></div>` : '');
       $('tv-wait-title').textContent = Net.state === 'connected' ? (P.lobby && P.lobby.playing ? 'A game is on…' : `Waiting for ${host} to start a game`) : Net.state === 'nohost' ? 'Waiting for the table to open' : 'Connecting…';
       $('tv-wait-sub').textContent = Net.state === 'connected' ? 'Scan the code to join from your phone.' : Net.note || '';
