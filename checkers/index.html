@@ -236,6 +236,21 @@ button { touch-action: manipulation; }
 .edge-off .adv { opacity: .4; pointer-events: none; }
 .edge-sec .seg button[data-v="off"][aria-pressed="true"] { background: var(--green, #2f9d58); color: #fff; }
 
+/* ---------- listen along: the host's music on a friend's phone ---------- */
+.la-bar { order: 4; flex: 1 1 100%; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 4px 4px 4px 4px; border-radius: 14px; border: 1px solid var(--line); background: linear-gradient(90deg, rgba(30, 215, 96, .12), rgba(30, 215, 96, 0) 70%), var(--panel); box-sizing: border-box; }
+.la-bar[hidden] { display: none; }
+.la-art { width: 30px; height: 30px; border-radius: 7px; flex: none; background: var(--panel-2) center / cover no-repeat; display: grid; place-items: center; color: #1ed760; font-size: 16px; }
+.la-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.la-txt b { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.la-txt span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.la-go { flex: none; padding: 7px 12px; border-radius: 999px; background: #1ed760; color: #0b2414; font-weight: 700; font-size: 13px; text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+.la-x { flex: none; width: 28px; height: 28px; border: 0; background: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 0; border-radius: 50%; }
+.la-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 11px; margin-right: 5px; vertical-align: -1px; }
+.la-eq i { width: 3px; background: #1ed760; border-radius: 1px; animation: la-eq 1s ease-in-out infinite; }
+.la-eq i:nth-child(2) { animation-delay: -.4s; } .la-eq i:nth-child(3) { animation-delay: -.7s; }
+@keyframes la-eq { 0%, 100% { height: 3px; } 50% { height: 11px; } }
+@media (prefers-reduced-motion: reduce) { .la-eq i { animation: none; height: 8px; } }
+
 @media (max-width: 480px) {
   .brand { font-size: 17px; }
   .status { font-size: 16px; }
@@ -631,8 +646,51 @@ const Kit = (() => {
   const recent = () => { const r = st.get('gamenight:recent', []); return Array.isArray(r) ? r.filter(known) : []; };
   function markPlayed(key) { if (!known(key)) return; st.set('gamenight:recent', [key, ...recent().filter(k => k !== key)].slice(0, 8)); }
 
+  // ----- listen along: the song on the host's Spotify, on a friend's phone, to open in their own Spotify -----
+  // What the host's table sent, checked: {t, a, img, on, link: {k, id} (a playlist, album…), song: {k, id}}
+  function cleanMusic(m) {
+    if (!m || typeof m !== 'object' || typeof m.t !== 'string' || !m.t) return null;
+    const txt = x => String(x || '').replace(/[\x00-\x1f\x7f]/g, ' ').trim().slice(0, 90);
+    const id = x => typeof x === 'string' && /^[A-Za-z0-9]{10,40}$/.test(x);
+    const img = typeof m.img === 'string' && (/^https:\/\/i\.scdn\.co\/image\/[a-f0-9]{16,64}$/.test(m.img) || (/^(127\.0\.0\.1|localhost)$/.test(location.hostname) && /^http:\/\/127\.0\.0\.1:\d+\/img\/[a-z0-9-]+$/.test(m.img))) ? m.img : '';
+    const link = m.link && ['playlist', 'album', 'artist', 'show'].includes(m.link.k) && id(m.link.id) ? {k: m.link.k, id: m.link.id} : null;
+    const song = m.song && ['track', 'episode'].includes(m.song.k) && id(m.song.id) ? {k: m.song.k, id: m.song.id} : null;
+    return {t: txt(m.t), a: txt(m.a), img, on: !!m.on, link, song};
+  }
+  // A strip under the scores: the song, and "Listen along" (opens the playlist in Spotify; just the song if the playlist is
+  // private). The × hides it until the music changes to something else.
+  let la = null;
+  function listenAlong(m, host) {
+    const go = m && (m.link || m.song);
+    const top = document.querySelector('header.top');
+    if (!go || !top || document.body.classList.contains('tv')) { if (la) la.hidden = true; return; }
+    if (!la) {
+      la = document.createElement('div');
+      la.className = 'la-bar';
+      la.id = 'la-bar';
+      if (top.querySelector('.top-tools')) top.append(la); else top.after(la);
+      la.addEventListener('click', e => {
+        if (!e.target.closest('[data-la="x"]')) return;
+        try { sessionStorage.setItem('gamenight:la-hide', la.dataset.key); } catch {}
+        la.hidden = true;
+      });
+    }
+    const key = go.k + ':' + go.id;
+    let hide = '';
+    try { hide = sessionStorage.getItem('gamenight:la-hide') || ''; } catch {}
+    la.dataset.key = key;
+    la.hidden = hide === key;
+    const e = x => String(x).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    const who = String(host || 'Host');
+    const html = `<span class="la-art"${m.img ? ` style="background-image:url('${e(m.img)}')"` : ''}>${m.img ? '' : '♪'}</span>`
+      + `<span class="la-txt"><b>${m.on ? '<span class="la-eq" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}${e(m.t)}</b><span>${e(m.a)} · ${e(who)}’s music${m.on ? '' : ' (paused)'}</span></span>`
+      + `<a class="la-go" href="https://open.spotify.com/${go.k}/${go.id}" target="_blank" rel="noopener" aria-label="${m.link ? `Listen along: open ${e(who)}’s ${go.k} in Spotify` : 'Open this song in Spotify'}">${m.link ? 'Listen along' : 'Open song'}</a>`
+      + '<button class="la-x" type="button" data-la="x" aria-label="Hide the music strip">×</button>';
+    if (la._h !== html) { la._h = html; la.innerHTML = html; }
+  }
+
   return {deviceId, play, muteButton, alertTurn, alertSoft, reactionBar, showReaction, validEmoji, unlock, store: st, GAMES, CATS,
-    AVATARS, CPU_FACE, cleanAvatar, avatar, setAvatar, avatarPicker, favs, toggleFav, recent, markPlayed};
+    AVATARS, CPU_FACE, cleanAvatar, avatar, setAvatar, avatarPicker, favs, toggleFav, recent, markPlayed, cleanMusic, listenAlong};
 })();
 
 </script>
@@ -1667,6 +1725,7 @@ function playerOnData(msg) {
   if (msg.type !== 'state') return;
   G.old = msg.proto !== PROTO;
   G.hostName = cleanName(msg.host) || 'Host';
+  Kit.listenAlong(Kit.cleanMusic(msg.music), G.hostName);
   const g = msg.g;
   if (validView(g)) {
     g.at = Date.now();
